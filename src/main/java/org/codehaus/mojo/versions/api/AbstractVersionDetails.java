@@ -367,10 +367,11 @@ public abstract class AbstractVersionDetails implements VersionDetails {
 	}
 
 	public final ArtifactVersion[] getAllUpdates(UpdateScope updateScope, boolean includeSnapshots) {
+		ArtifactVersion[] allUpdates = new ArtifactVersion[0];
 		if (isCurrentVersionDefined()) {
-			return getAllUpdates(getCurrentVersion(), updateScope, includeSnapshots);
+			allUpdates = getAllUpdates(getCurrentVersion(), updateScope, includeSnapshots);
 		}
-		return null;
+		return allUpdates;
 	}
 
 	public final ArtifactVersion getOldestUpdate(VersionRange versionRange) {
