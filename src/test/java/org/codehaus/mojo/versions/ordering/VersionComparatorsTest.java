@@ -25,46 +25,37 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
-public class VersionComparatorsTest
-{
-    private final String[] versionDataset = {
-        "1",
-        "1.0",
-        "1.0.0",
-        "1.0.0-1",
-        "1.0.0.sp1",
-        "foobar",
-        "1-alpha-1",
-    };
+public class VersionComparatorsTest {
+	private final String[] versionDataset = { "1", "1.0", "1.0.0", "1.0.0-1", "1.0.0.sp1", "foobar", "1-alpha-1", };
 
-    @Test
-    public void testMavenVersionComparator() {
-        assertVersions( new MavenVersionComparator() );
-    }
+	@Test
+	public void testMavenVersionComparator() {
+		assertVersions(new MavenVersionComparator());
+	}
 
-    @Test
-    public void testMercuryVersionComparator() {
-        assertVersions( new MercuryVersionComparator());
-    }
+	@Test
+	public void testMercuryVersionComparator() {
+		assertVersions(new MercuryVersionComparator());
+	}
 
-    @Test
-    public void testNumericVersionComparator() {
-        assertVersions( new NumericVersionComparator() );
-    }
+	@Test
+	public void testNumericVersionComparator() {
+		assertVersions(new NumericVersionComparator());
+	}
 
-    public void assertVersions(VersionComparator instance) {
-        for (int i = 0; i < versionDataset.length; i++) {
-            assertLater( versionDataset[i], instance );
-            assertLater( versionDataset[i]+"-SNAPSHOT", instance );
-        }
-    }
+	public void assertVersions(VersionComparator instance) {
+		for (int i = 0; i < versionDataset.length; i++) {
+			assertLater(versionDataset[i], instance);
+			assertLater(versionDataset[i] + "-SNAPSHOT", instance);
+		}
+	}
 
-    public void assertLater(String version, VersionComparator instance) {
-        ArtifactVersion v1 = new DefaultArtifactVersion( version );
-        int count = instance.getSegmentCount( v1 );
-        for (int i = 0; i < count; i++) {
-            ArtifactVersion v2 = instance.incrementSegment( v1, i );
-            assertTrue(v1.toString() + " < " + v2.toString(), instance.compare( v1, v2 ) < 0);
-        }
-    }
+	public void assertLater(String version, VersionComparator instance) {
+		ArtifactVersion v1 = new DefaultArtifactVersion(version);
+		int count = instance.getSegmentCount(v1);
+		for (int i = 0; i < count; i++) {
+			ArtifactVersion v2 = instance.incrementSegment(v1, i);
+			assertTrue(v1.toString() + " < " + v2.toString(), instance.compare(v1, v2) < 0);
+		}
+	}
 }

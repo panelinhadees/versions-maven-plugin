@@ -27,36 +27,33 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Basic tests for {@linkplain org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo}.
+ * Basic tests for
+ * {@linkplain org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo}.
  *
  * @author Stephen Connolly
  */
-public class AbstractVersionsUpdaterMojoTest
-{
+public class AbstractVersionsUpdaterMojoTest {
 
-    private NumericVersionComparator instance = new NumericVersionComparator();
+	private NumericVersionComparator instance = new NumericVersionComparator();
 
-    private int instanceCompare( String v1, String v2 )
-    {
-        return instance.compare( new DefaultArtifactVersion( v1 ), new DefaultArtifactVersion( v2 ) );
-    }
+	private int instanceCompare(String v1, String v2) {
+		return instance.compare(new DefaultArtifactVersion(v1), new DefaultArtifactVersion(v2));
+	}
 
-    /**
-     * Basic test.
-     *
-     * @throws Exception when the test fails.
-     */
-    @Test
-    public void testBasic()
-        throws Exception
-    {
-        assertEquals( 0, instanceCompare( "1", "1" ) );
-        assertTrue( instanceCompare( "1", "2" ) < 0 );
-        assertTrue( instanceCompare( "2", "1" ) > 0 );
-        assertTrue( instanceCompare( "1", "1-SNAPSHOT" ) > 0 );
-        assertTrue( instanceCompare( "1", "1.0" ) > 0 );
-        assertTrue( instanceCompare( "1.1", "1" ) > 0 );
-        assertTrue( instanceCompare( "5.1.0.0.24", "5.1.0.0.9" ) > 0 );
-        assertTrue( instanceCompare( "5.1.0.0.2a4", "5.1.0.0.9" ) < 0 );
-    }
+	/**
+	 * Basic test.
+	 *
+	 * @throws Exception when the test fails.
+	 */
+	@Test
+	public void testBasic() throws Exception {
+		assertEquals(0, instanceCompare("1", "1"));
+		assertTrue(instanceCompare("1", "2") < 0);
+		assertTrue(instanceCompare("2", "1") > 0);
+		assertTrue(instanceCompare("1", "1-SNAPSHOT") > 0);
+		assertTrue(instanceCompare("1", "1.0") > 0);
+		assertTrue(instanceCompare("1.1", "1") > 0);
+		assertTrue(instanceCompare("5.1.0.0.24", "5.1.0.0.9") > 0);
+		assertTrue(instanceCompare("5.1.0.0.2a4", "5.1.0.0.9") < 0);
+	}
 }
