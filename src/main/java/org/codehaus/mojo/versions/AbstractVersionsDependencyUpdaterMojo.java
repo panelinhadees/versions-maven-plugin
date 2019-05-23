@@ -195,17 +195,17 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 	 * @since 1.0-alpha-3
 	 */
 	protected Artifact findArtifact(Dependency dependency) {
-		if (getProject().getDependencyArtifacts() == null) {
-			return null;
-		}
-		Iterator<?> iter = getProject().getDependencyArtifacts().iterator();
-		while (iter.hasNext()) {
-			Artifact artifact = (Artifact) iter.next();
-			if (compare(artifact, dependency)) {
-				return artifact;
+		Artifact toReturn = null;
+		if (getProject().getDependencyArtifacts() != null) {
+			Iterator<?> iter = getProject().getDependencyArtifacts().iterator();
+			while (iter.hasNext()) {
+				Artifact artifact = (Artifact) iter.next();
+				if (compare(artifact, dependency)) {
+					toReturn =  artifact;
+				}
 			}
 		}
-		return null;
+		return toReturn;
 	}
 
 	/**
@@ -219,7 +219,7 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 		Artifact artifact = findArtifact(dependency);
 		if (artifact == null) {
 			try {
-				return getHelper().createDependencyArtifact(dependency);
+				artifact = getHelper().createDependencyArtifact(dependency);
 			} catch (InvalidVersionSpecificationException e) {
 				throw new MojoExecutionException(e.getMessage(), e);
 			}
@@ -284,13 +284,14 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 	 * @since 1.0-alpha-3
 	 */
 	protected boolean isProducedByReactor(Dependency dependency) {
+		boolean toReturn = false; 
 		for (Object reactorProject : reactorProjects) {
 			MavenProject project = (MavenProject) reactorProject;
 			if (compare(project, dependency)) {
-				return true;
+				toReturn = true;
 			}
 		}
-		return false;
+		return toReturn;
 
 	}
 
@@ -303,13 +304,14 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 	 * @return true if project and dep refer to the same artifact
 	 */
 	private boolean compare(MavenProject project, Dependency dep) {
+		boolean toReturn = true;
 		if (!StringUtils.equals(project.getGroupId(), dep.getGroupId())) {
-			return false;
+			toReturn = false;
 		}
 		if (!StringUtils.equals(project.getArtifactId(), dep.getArtifactId())) {
-			return false;
+			toReturn = false;
 		}
-		return true;
+		return toReturn;
 	}
 
 	/**
@@ -321,19 +323,20 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 	 * @return true if artifact and dep refer to the same artifact
 	 */
 	private boolean compare(Artifact artifact, Dependency dep) {
+		boolean toReturn = true; 
 		if (!StringUtils.equals(artifact.getGroupId(), dep.getGroupId())) {
-			return false;
+			toReturn = false;
 		}
 		if (!StringUtils.equals(artifact.getArtifactId(), dep.getArtifactId())) {
-			return false;
+			toReturn = false;
 		}
 		if (!StringUtils.equals(artifact.getType(), dep.getType())) {
-			return false;
+			toReturn = false;
 		}
 		if (!StringUtils.equals(artifact.getClassifier(), dep.getClassifier())) {
-			return false;
+			toReturn = false;
 		}
-		return true;
+		return toReturn;
 	}
 
 	/**
