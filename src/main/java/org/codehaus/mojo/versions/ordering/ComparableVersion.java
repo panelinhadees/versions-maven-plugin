@@ -130,7 +130,7 @@ public class ComparableVersion implements Comparable {
 		 * a given qualifier makes the version older than one without a qualifier, or
 		 * more recent.
 		 */
-		private static Comparable RELEASE_VERSION_INDEX = String.valueOf(QUALIFIERS_LIST.indexOf(""));
+		private static Comparable releaseVersionIndex = String.valueOf(QUALIFIERS_LIST.indexOf(""));
 
 		private String value;
 
@@ -158,7 +158,7 @@ public class ComparableVersion implements Comparable {
 		}
 
 		public boolean isNull() {
-			return (comparableQualifier(value).compareTo(RELEASE_VERSION_INDEX) == 0);
+			return (comparableQualifier(value).compareTo(releaseVersionIndex) == 0);
 		}
 
 		/**
@@ -185,7 +185,7 @@ public class ComparableVersion implements Comparable {
 		public int compareTo(Item item) {
 			if (item == null) {
 				// 1-rc < 1, 1-ga > 1
-				return comparableQualifier(value).compareTo(RELEASE_VERSION_INDEX);
+				return comparableQualifier(value).compareTo(releaseVersionIndex);
 			}
 			switch (item.getType()) {
 			case INTEGER_ITEM:
