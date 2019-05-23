@@ -457,7 +457,7 @@ public class CompareDependenciesMojo
         {
             sb.append( ":" ).append( artifact.getClassifier() );
         }
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
 }

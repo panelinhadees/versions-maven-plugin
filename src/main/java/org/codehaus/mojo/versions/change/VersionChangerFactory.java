@@ -32,116 +32,95 @@ import java.util.List;
  * @author Stephen Connolly
  * @since 15-Sep-2010 16:05:27
  */
-public class VersionChangerFactory
-{
-    private Model model = null;
+public class VersionChangerFactory {
+	private Model model = null;
 
-    private ModifiedPomXMLEventReader pom = null;
+	private ModifiedPomXMLEventReader pom = null;
 
-    private Log log = null;
+	private Log log = null;
 
-    public synchronized Model getModel()
-    {
-        return model;
-    }
+	public synchronized Model getModel() {
+		return model;
+	}
 
-    public synchronized void setModel( Model model )
-    {
-        this.model = model;
-    }
+	public synchronized void setModel(Model model) {
+		this.model = model;
+	}
 
-    public synchronized ModifiedPomXMLEventReader getPom()
-    {
-        return pom;
-    }
+	public synchronized ModifiedPomXMLEventReader getPom() {
+		return pom;
+	}
 
-    public synchronized void setPom( ModifiedPomXMLEventReader pom )
-    {
-        this.pom = pom;
-    }
+	public synchronized void setPom(ModifiedPomXMLEventReader pom) {
+		this.pom = pom;
+	}
 
-    public synchronized Log getLog()
-    {
-        return log;
-    }
+	public synchronized Log getLog() {
+		return log;
+	}
 
-    public synchronized void setLog( Log log )
-    {
-        this.log = log;
-    }
+	public synchronized void setLog(Log log) {
+		this.log = log;
+	}
 
-    private synchronized void checkState()
-    {
-        if ( model == null )
-        {
-            throw new IllegalStateException( "Model has not been specified" );
-        }
-        if ( pom == null )
-        {
-            throw new IllegalStateException( "Pom has not been specified" );
-        }
-        if ( log == null )
-        {
-            throw new IllegalStateException( "Log has not been specified" );
-        }
-    }
+	private synchronized void checkState() {
+		if (model == null) {
+			throw new IllegalStateException("Model has not been specified");
+		}
+		if (pom == null) {
+			throw new IllegalStateException("Pom has not been specified");
+		}
+		if (log == null) {
+			throw new IllegalStateException("Log has not been specified");
+		}
+	}
 
-    public synchronized VersionChanger newPluginVersionChanger()
-    {
-        checkState();
-        return new PluginVersionChanger( model, pom, log );
-    }
+	public synchronized VersionChanger newPluginVersionChanger() {
+		checkState();
+		return new PluginVersionChanger(model, pom, log);
+	}
 
-    public synchronized VersionChanger newDependencyVersionChanger()
-    {
-        checkState();
-        return new DependencyVersionChanger( model, pom, log );
-    }
+	public synchronized VersionChanger newDependencyVersionChanger() {
+		checkState();
+		return new DependencyVersionChanger(model, pom, log);
+	}
 
-    public synchronized VersionChanger newProjectVersionChanger()
-    {
-        checkState();
-        return new ProjectVersionChanger( model, pom, log );
-    }
+	public synchronized VersionChanger newProjectVersionChanger() {
+		checkState();
+		return new ProjectVersionChanger(model, pom, log);
+	}
 
-    public synchronized VersionChanger newParentVersionChanger()
-    {
-        checkState();
-        return new ParentVersionChanger( model, pom, log );
-    }
+	public synchronized VersionChanger newParentVersionChanger() {
+		checkState();
+		return new ParentVersionChanger(model, pom, log);
+	}
 
-    public synchronized VersionChanger newVersionChanger()
-    {
-        checkState();
-        VersionChanger[] delegates = new VersionChanger[] { newParentVersionChanger(), newProjectVersionChanger(),
-            newDependencyVersionChanger(), newPluginVersionChanger() };
-        return new CompositeVersionChanger( delegates );
-    }
+	public synchronized VersionChanger newVersionChanger() {
+		checkState();
+		VersionChanger[] delegates = new VersionChanger[] { newParentVersionChanger(), newProjectVersionChanger(),
+				newDependencyVersionChanger(), newPluginVersionChanger() };
+		return new CompositeVersionChanger(delegates);
+	}
 
-    public synchronized VersionChanger newVersionChanger( boolean processParent, boolean processProject,
-                                                          boolean processDependencies, boolean processPlugins )
-    {
-        checkState();
+	public synchronized VersionChanger newVersionChanger(boolean processParent, boolean processProject,
+			boolean processDependencies, boolean processPlugins) {
+		checkState();
 
-        List<VersionChanger> delegates = new ArrayList<>();
+		List<VersionChanger> delegates = new ArrayList<>();
 
-        if ( processParent )
-        {
-            delegates.add( newParentVersionChanger() );
-        }
-        if ( processProject )
-        {
-            delegates.add( newProjectVersionChanger() );
-        }
-        if ( processDependencies )
-        {
-            delegates.add( newDependencyVersionChanger() );
-        }
-        if ( processPlugins )
-        {
-            delegates.add( newPluginVersionChanger() );
-        }
+		if (processParent) {
+			delegates.add(newParentVersionChanger());
+		}
+		if (processProject) {
+			delegates.add(newProjectVersionChanger());
+		}
+		if (processDependencies) {
+			delegates.add(newDependencyVersionChanger());
+		}
+		if (processPlugins) {
+			delegates.add(newPluginVersionChanger());
+		}
 
-        return new CompositeVersionChanger( delegates );
-    }
+		return new CompositeVersionChanger(delegates);
+	}
 }

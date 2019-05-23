@@ -37,81 +37,73 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Replaces any release versions with the next release version (if it has been released).
+ * Replaces any release versions with the next release version (if it has been
+ * released).
  *
  * @author Stephen Connolly
  * @since 1.0-alpha-3
  */
-@Mojo( name = "use-next-releases", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UseNextReleasesMojo
-    extends AbstractVersionsDependencyUpdaterMojo
-{
+@Mojo(name = "use-next-releases", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UseNextReleasesMojo extends AbstractVersionsDependencyUpdaterMojo {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Pattern to match a snapshot version.
-     */
-    public final Pattern matchSnapshotRegex = Pattern.compile( "^(.+)-((SNAPSHOT)|(\\d{8}\\.\\d{6}-\\d+))$" );
+	/**
+	 * Pattern to match a snapshot version.
+	 */
+	public final Pattern matchSnapshotRegex = Pattern.compile("^(.+)-((SNAPSHOT)|(\\d{8}\\.\\d{6}-\\d+))$");
 
-    // ------------------------------ METHODS --------------------------
+	// ------------------------------ METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
-     * @throws org.apache.maven.plugin.MojoFailureException when things go wrong in a very bad way
-     * @throws javax.xml.stream.XMLStreamException when things go wrong with XML streaming
-     * @see AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException
-    {
-        if ( getProject().getDependencyManagement() != null && isProcessingDependencyManagement() )
-        {
-            useNextReleases( pom, getProject().getDependencyManagement().getDependencies() );
-        }
-        if ( getProject().getDependencies() != null && isProcessingDependencies() )
-        {
-            useNextReleases( pom, getProject().getDependencies() );
-        }
-    }
+	/**
+	 * @param pom the pom to update.
+	 * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
+	 * @throws org.apache.maven.plugin.MojoFailureException   when things go wrong
+	 *                                                        in a very bad way
+	 * @throws javax.xml.stream.XMLStreamException            when things go wrong
+	 *                                                        with XML streaming
+	 * @see AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
+	 */
+	protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException,
+			XMLStreamException, ArtifactMetadataRetrievalException {
+		if (getProject().getDependencyManagement() != null && isProcessingDependencyManagement()) {
+			useNextReleases(pom, getProject().getDependencyManagement().getDependencies());
+		}
+		if (getProject().getDependencies() != null && isProcessingDependencies()) {
+			useNextReleases(pom, getProject().getDependencies());
+		}
+	}
 
-    private void useNextReleases( ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies )
-        throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException
-    {
-        for ( Dependency dep : dependencies )
-        {
-            if ( isExcludeReactor() && isProducedByReactor( dep ) )
-            {
-                getLog().info( "Ignoring reactor dependency: " + toString( dep ) );
-                continue;
-            }
+	private void useNextReleases(ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies)
+			throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException {
+		for (Dependency dep : dependencies) {
+			if (isExcludeReactor() && isProducedByReactor(dep)) {
+				getLog().info("Ignoring reactor dependency: " + toString(dep));
+				continue;
+			}
 
-            String version = dep.getVersion();
-            Matcher versionMatcher = matchSnapshotRegex.matcher( version );
-            if ( !versionMatcher.matches() )
-            {
-                getLog().debug( "Looking for newer versions of " + toString( dep ) );
-                Artifact artifact = this.toArtifact( dep );
-                if ( !isIncluded( artifact ) )
-                {
-                    continue;
-                }
+			String version = dep.getVersion();
+			Matcher versionMatcher = matchSnapshotRegex.matcher(version);
+			if (!versionMatcher.matches()) {
+				getLog().debug("Looking for newer versions of " + toString(dep));
+				Artifact artifact = this.toArtifact(dep);
+				if (!isIncluded(artifact)) {
+					continue;
+				}
 
-                ArtifactVersions versions = getHelper().lookupArtifactVersions( artifact, false );
-                ArtifactVersion[] newer = versions.getNewerVersions( version, false );
-                if ( newer.length > 0 )
-                {
-                    String newVersion = newer[0].toString();
-                    if ( PomHelper.setDependencyVersion( pom, dep.getGroupId(), dep.getArtifactId(), version,
-                                                         newVersion, getProject().getModel() ) )
+				ArtifactVersions versions = getHelper().lookupArtifactVersions(artifact, false);
+				ArtifactVersion[] newer = versions.getNewerVersions(version, false);
+				if (newer.length > 0) {
+					String newVersion = newer[0].toString();
+					if (PomHelper.setDependencyVersion(pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
+							getProject().getModel()))
 
-                    {
-                        getLog().info( "Updated " + toString( dep ) + " to version " + newVersion );
-                    }
-                }
-            }
-        }
-    }
+					{
+						getLog().info("Updated " + toString(dep) + " to version " + newVersion);
+					}
+				}
+			}
+		}
+	}
 
 }
