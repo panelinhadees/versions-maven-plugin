@@ -420,7 +420,7 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 				pattern = pattern.substring(indexOf + 1);
 				indexOf = nextCommaIndex(pattern);
 			}
-			patterns.add(includeString);
+			patterns.add(pattern);
 		}
 
 
