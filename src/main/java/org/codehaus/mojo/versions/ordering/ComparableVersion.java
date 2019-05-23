@@ -135,21 +135,22 @@ public class ComparableVersion implements Comparable {
 		private String value;
 
 		public StringItem(String value, boolean followedByDigit) {
+			String qualifier = value;
 			if (followedByDigit && value.length() == 1) {
 				// a1 = alpha-1, b1 = beta-1, m1 = milestone-1
 				switch (value.charAt(0)) {
 				case 'a':
-					value = "alpha";
+					qualifier = "alpha";
 					break;
 				case 'b':
-					value = "beta";
+					qualifier = "beta";
 					break;
 				case 'm':
-					value = "milestone";
+					qualifier = "milestone";
 					break;
 				}
 			}
-			this.value = ALIASES.getProperty(value, value);
+			this.value = ALIASES.getProperty(qualifier, qualifier);
 		}
 
 		public int getType() {
@@ -289,10 +290,11 @@ public class ComparableVersion implements Comparable {
 
 	public final void parseVersion(String version) {
 		this.value = version;
+		String auxVersion = version;
 
 		items = new ListItem();
 
-		version = version.toLowerCase(Locale.ENGLISH);
+		auxVersion = version.toLowerCase(Locale.ENGLISH);
 
 		ListItem list = items;
 
@@ -303,28 +305,28 @@ public class ComparableVersion implements Comparable {
 
 		int startIndex = 0;
 
-		for (int i = 0; i < version.length(); i++) {
-			char c = version.charAt(i);
+		for (int i = 0; i < auxVersion.length(); i++) {
+			char c = auxVersion.charAt(i);
 
 			if (c == '.') {
 				if (i == startIndex) {
 					list.add(IntegerItem.ZERO);
 				} else {
-					list.add(parseItem(isDigit, version.substring(startIndex, i)));
+					list.add(parseItem(isDigit, auxVersion.substring(startIndex, i)));
 				}
 				startIndex = i + 1;
 			} else if (c == '-') {
 				if (i == startIndex) {
 					list.add(IntegerItem.ZERO);
 				} else {
-					list.add(parseItem(isDigit, version.substring(startIndex, i)));
+					list.add(parseItem(isDigit, auxVersion.substring(startIndex, i)));
 				}
 				startIndex = i + 1;
 
 				if (isDigit) {
 					list.normalize(); // 1.0-* = 1-*
 
-					if ((i + 1 < version.length()) && Character.isDigit(version.charAt(i + 1))) {
+					if ((i + 1 < auxVersion.length()) && Character.isDigit(auxVersion.charAt(i + 1))) {
 						// new ListItem only if previous were digits and new char is a digit,
 						// ie need to differentiate only 1.1 from 1-1
 						list.add(list = new ListItem());
@@ -334,14 +336,14 @@ public class ComparableVersion implements Comparable {
 				}
 			} else if (Character.isDigit(c)) {
 				if (!isDigit && i > startIndex) {
-					list.add(new StringItem(version.substring(startIndex, i), true));
+					list.add(new StringItem(auxVersion.substring(startIndex, i), true));
 					startIndex = i;
 				}
 
 				isDigit = true;
 			} else {
 				if (isDigit && i > startIndex) {
-					list.add(parseItem(true, version.substring(startIndex, i)));
+					list.add(parseItem(true, auxVersion.substring(startIndex, i)));
 					startIndex = i;
 				}
 
@@ -349,8 +351,8 @@ public class ComparableVersion implements Comparable {
 			}
 		}
 
-		if (version.length() > startIndex) {
-			list.add(parseItem(isDigit, version.substring(startIndex)));
+		if (auxVersion.length() > startIndex) {
+			list.add(parseItem(isDigit, auxVersion.substring(startIndex)));
 		}
 
 		while (!stack.isEmpty()) {

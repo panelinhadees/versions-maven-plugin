@@ -1143,9 +1143,10 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 */
 	private List<MavenProject> getParentProjects(MavenProject project) throws MojoExecutionException {
 		List<MavenProject> parents = new ArrayList<>();
-		while (project.getParent() != null) {
-			project = project.getParent();
-			parents.add(0, project);
+		MavenProject parentProject = project;
+		while (parentProject.getParent() != null) {
+			parentProject = parentProject.getParent();
+			parents.add(0, parentProject);
 		}
 		return parents;
 	}

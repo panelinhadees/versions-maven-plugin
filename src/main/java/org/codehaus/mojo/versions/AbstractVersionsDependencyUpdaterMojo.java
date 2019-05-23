@@ -420,7 +420,6 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 			}
 			patterns.add(includeString);
 		}
-
 		return patterns;
 	}
 

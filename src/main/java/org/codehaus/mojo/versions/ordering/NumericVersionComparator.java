@@ -144,7 +144,8 @@ public class NumericVersionComparator extends AbstractVersionComparator {
 		StringBuilder buf = new StringBuilder();
 		StringTokenizer tok = new StringTokenizer(version, ".");
 		boolean first = true;
-		while (segment >= 0 && tok.hasMoreTokens()) {
+		int seg = segment;
+		while (seg >= 0 && tok.hasMoreTokens()) {
 			if (first) {
 				first = false;
 			} else {
@@ -158,7 +159,7 @@ public class NumericVersionComparator extends AbstractVersionComparator {
 				p = p.substring(0, index);
 			}
 
-			if (segment == 0) {
+			if (seg == 0) {
 				try {
 					BigInteger n = new BigInteger(p);
 					p = n.add(BIG_INTEGER_ONE).toString();
@@ -236,7 +237,7 @@ public class NumericVersionComparator extends AbstractVersionComparator {
 				buf.append('-');
 				buf.append(q);
 			}
-			segment--;
+			seg--;
 		}
 		while (tok.hasMoreTokens()) {
 			if (first) {
