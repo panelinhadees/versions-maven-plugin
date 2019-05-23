@@ -37,98 +37,79 @@ import javax.xml.stream.XMLStreamException;
  * @author Stephen Connolly
  * @since 2.2
  */
-@Mojo( name = "display-parent-updates", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class DisplayParentUpdatesMojo
-    extends AbstractVersionsDisplayMojo
-{
+@Mojo(name = "display-parent-updates", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class DisplayParentUpdatesMojo extends AbstractVersionsDisplayMojo {
 
-    @Override
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
-        logInit();
-        if ( getProject().getParent() == null )
-        {
-            logLine( false, "Project does not have a parent." );
-            return;
-        }
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		logInit();
+		if (getProject().getParent() == null) {
+			logLine(false, "Project does not have a parent.");
+			return;
+		}
 
-        if ( reactorProjects.contains( getProject().getParent() ) )
-        {
-            logLine( false, "Parent project is part of the reactor." );
-            return;
-        }
+		if (reactorProjects.contains(getProject().getParent())) {
+			logLine(false, "Parent project is part of the reactor.");
+			return;
+		}
 
-        String currentVersion = getProject().getParent().getVersion();
-        String version = currentVersion;
+		String currentVersion = getProject().getParent().getVersion();
+		String version = currentVersion;
 
-        VersionRange versionRange;
-        try
-        {
-            versionRange = VersionRange.createFromVersionSpec( version );
-        }
-        catch ( InvalidVersionSpecificationException e )
-        {
-            throw new MojoExecutionException( "Invalid version range specification: " + version, e );
-        }
+		VersionRange versionRange;
+		try {
+			versionRange = VersionRange.createFromVersionSpec(version);
+		} catch (InvalidVersionSpecificationException e) {
+			throw new MojoExecutionException("Invalid version range specification: " + version, e);
+		}
 
-        Artifact artifact = artifactFactory.createDependencyArtifact( getProject().getParent().getGroupId(),
-                                                                      getProject().getParent().getArtifactId(),
-                                                                      versionRange, "pom", null, null );
+		Artifact artifact = artifactFactory.createDependencyArtifact(getProject().getParent().getGroupId(),
+				getProject().getParent().getArtifactId(), versionRange, "pom", null, null);
 
-        ArtifactVersion artifactVersion;
-        try
-        {
-            artifactVersion = findLatestVersion( artifact, versionRange, null, false );
-        }
-        catch ( ArtifactMetadataRetrievalException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
+		ArtifactVersion artifactVersion;
+		try {
+			artifactVersion = findLatestVersion(artifact, versionRange, null, false);
+		} catch (ArtifactMetadataRetrievalException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
 
-        if ( artifactVersion == null || currentVersion.equals( artifactVersion.toString() ) )
-        {
-            logLine( false, "The parent project is the latest version:" );
-            StringBuilder buf = new StringBuilder( 68 );
-            buf.append( "  " );
-            buf.append( getProject().getParent().getGroupId() );
-            buf.append( ':' );
-            buf.append( getProject().getParent().getArtifactId() );
-            buf.append( ' ' );
-            int padding = 68 - currentVersion.length();
-            while ( buf.length() < padding )
-            {
-                buf.append( '.' );
-            }
-            buf.append( ' ' );
-            buf.append( currentVersion );
-            logLine( false, buf.toString() );
-        }
-        else
-        {
-            logLine( false, "The parent project has a newer version:" );
-            StringBuilder buf = new StringBuilder( 68 );
-            buf.append( "  " );
-            buf.append( getProject().getParent().getGroupId() );
-            buf.append( ':' );
-            buf.append( getProject().getParent().getArtifactId() );
-            buf.append( ' ' );
-            int padding = 68 - currentVersion.length() - artifactVersion.toString().length() - " -> ".length();
-            while ( buf.length() < padding )
-            {
-                buf.append( '.' );
-            }
-            buf.append( ' ' );
-            buf.append( currentVersion );
-            buf.append( " -> " );
-            buf.append( artifactVersion.toString() );
-            logLine( false, buf.toString() );
-        }
-    }
+		if (artifactVersion == null || currentVersion.equals(artifactVersion.toString())) {
+			logLine(false, "The parent project is the latest version:");
+			StringBuilder buf = new StringBuilder(68);
+			buf.append("  ");
+			buf.append(getProject().getParent().getGroupId());
+			buf.append(':');
+			buf.append(getProject().getParent().getArtifactId());
+			buf.append(' ');
+			int padding = 68 - currentVersion.length();
+			while (buf.length() < padding) {
+				buf.append('.');
+			}
+			buf.append(' ');
+			buf.append(currentVersion);
+			logLine(false, buf.toString());
+		} else {
+			logLine(false, "The parent project has a newer version:");
+			StringBuilder buf = new StringBuilder(68);
+			buf.append("  ");
+			buf.append(getProject().getParent().getGroupId());
+			buf.append(':');
+			buf.append(getProject().getParent().getArtifactId());
+			buf.append(' ');
+			int padding = 68 - currentVersion.length() - artifactVersion.toString().length() - " -> ".length();
+			while (buf.length() < padding) {
+				buf.append('.');
+			}
+			buf.append(' ');
+			buf.append(currentVersion);
+			buf.append(" -> ");
+			buf.append(artifactVersion.toString());
+			logLine(false, buf.toString());
+		}
+	}
 
-    @Override
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException, ArtifactMetadataRetrievalException
-    {
-    }
+	@Override
+	protected void update(ModifiedPomXMLEventReader pom) throws MojoExecutionException, MojoFailureException,
+			XMLStreamException, ArtifactMetadataRetrievalException {
+	}
 }

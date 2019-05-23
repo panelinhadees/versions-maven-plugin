@@ -31,93 +31,82 @@ import org.apache.maven.reporting.MavenReportException;
 import org.codehaus.mojo.versions.api.PropertyVersions;
 
 /**
- * Generates a report of available updates for properties of a project which are linked to the dependencies and/or
- * plugins of a project.
+ * Generates a report of available updates for properties of a project which are
+ * linked to the dependencies and/or plugins of a project.
  *
  * @author Stephen Connolly
  * @since 1.0-beta-1
  */
-@Mojo( name = "property-updates-report", requiresProject = true, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true )
-public class PropertyUpdatesReport
-    extends AbstractVersionsReport
-{
+@Mojo(name = "property-updates-report", requiresProject = true, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
+public class PropertyUpdatesReport extends AbstractVersionsReport {
 
-    /**
-     * Any restrictions that apply to specific properties.
-     *
-     * @since 1.0-beta-1
-     */
-    @Parameter
-    private Property[] properties;
+	/**
+	 * Any restrictions that apply to specific properties.
+	 *
+	 * @since 1.0-beta-1
+	 */
+	@Parameter
+	private Property[] properties;
 
-    /**
-     * A comma separated list of properties to include in the report.
-     *
-     * @since 1.0-beta-1
-     */
-    @Parameter( property = "includeProperties" )
-    private String includeProperties = null;
+	/**
+	 * A comma separated list of properties to include in the report.
+	 *
+	 * @since 1.0-beta-1
+	 */
+	@Parameter(property = "includeProperties")
+	private String includeProperties = null;
 
-    /**
-     * A comma separated list of properties to not include in the report.
-     *
-     * @since 1.0-beta-1
-     */
-    @Parameter( property = "excludeProperties" )
-    private String excludeProperties = null;
+	/**
+	 * A comma separated list of properties to not include in the report.
+	 *
+	 * @since 1.0-beta-1
+	 */
+	@Parameter(property = "excludeProperties")
+	private String excludeProperties = null;
 
-    /**
-     * Whether properties linking versions should be auto-detected or not.
-     *
-     * @since 1.0-beta-1
-     */
-    @Parameter( property = "autoLinkItems", defaultValue = "true" )
-    private boolean autoLinkItems;
+	/**
+	 * Whether properties linking versions should be auto-detected or not.
+	 *
+	 * @since 1.0-beta-1
+	 */
+	@Parameter(property = "autoLinkItems", defaultValue = "true")
+	private boolean autoLinkItems;
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isExternalReport()
-    {
-        return false;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isExternalReport() {
+		return false;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean canGenerateReport()
-    {
-        return haveBuildProperties();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean canGenerateReport() {
+		return haveBuildProperties();
+	}
 
-    private boolean haveBuildProperties()
-    {
-        return getProject().getProperties() != null && !getProject().getProperties().isEmpty();
-    }
+	private boolean haveBuildProperties() {
+		return getProject().getProperties() != null && !getProject().getProperties().isEmpty();
+	}
 
-    protected void doGenerateReport( Locale locale, Sink sink )
-        throws MavenReportException
-    {
-        final Map<Property, PropertyVersions> updateSet;
-        try
-        {
-            updateSet = getHelper().getVersionPropertiesMap( getProject(), properties, includeProperties,
-                                                             excludeProperties, autoLinkItems );
-        }
-        catch ( MojoExecutionException e )
-        {
-            throw new MavenReportException( e.getMessage(), e );
-        }
-        PropertyUpdatesRenderer renderer =
-            new PropertyUpdatesRenderer( sink, getI18n(), getOutputName(), locale, updateSet );
-        renderer.render();
-    }
+	protected void doGenerateReport(Locale locale, Sink sink) throws MavenReportException {
+		final Map<Property, PropertyVersions> updateSet;
+		try {
+			updateSet = getHelper().getVersionPropertiesMap(getProject(), properties, includeProperties,
+					excludeProperties, autoLinkItems);
+		} catch (MojoExecutionException e) {
+			throw new MavenReportException(e.getMessage(), e);
+		}
+		PropertyUpdatesRenderer renderer = new PropertyUpdatesRenderer(sink, getI18n(), getOutputName(), locale,
+				updateSet);
+		renderer.render();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getOutputName()
-    {
-        return "property-updates-report";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getOutputName() {
+		return "property-updates-report";
+	}
 }

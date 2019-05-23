@@ -42,145 +42,121 @@ import java.util.TreeSet;
  * @author Stephen Connolly
  * @since 1.0-beta-1
  */
-@Mojo( name = "plugin-updates-report", requiresProject = true, requiresDependencyResolution = ResolutionScope.RUNTIME )
-public class PluginUpdatesReport
-    extends AbstractVersionsReport
-{
+@Mojo(name = "plugin-updates-report", requiresProject = true, requiresDependencyResolution = ResolutionScope.RUNTIME)
+public class PluginUpdatesReport extends AbstractVersionsReport {
 
-    /**
-     * Report formats (html and/or xml). HTML by default.
-     * 
-     */
-    @Parameter( property = "pluginUpdatesReportFormats", defaultValue = "html" )
-    private String[] formats = new String[] { "html" };
+	/**
+	 * Report formats (html and/or xml). HTML by default.
+	 * 
+	 */
+	@Parameter(property = "pluginUpdatesReportFormats", defaultValue = "html")
+	private String[] formats = new String[] { "html" };
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isExternalReport()
-    {
-        return false;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isExternalReport() {
+		return false;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean canGenerateReport()
-    {
-        return haveBuildPlugins() || haveBuildPluginManagementPlugins();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean canGenerateReport() {
+		return haveBuildPlugins() || haveBuildPluginManagementPlugins();
+	}
 
-    private boolean haveBuildPluginManagementPlugins()
-    {
-        return getProject().getBuild() != null && getProject().getBuild().getPluginManagement() != null
-            && getProject().getBuild().getPluginManagement().getPlugins() != null
-            && !getProject().getBuild().getPluginManagement().getPlugins().isEmpty();
-    }
+	private boolean haveBuildPluginManagementPlugins() {
+		return getProject().getBuild() != null && getProject().getBuild().getPluginManagement() != null
+				&& getProject().getBuild().getPluginManagement().getPlugins() != null
+				&& !getProject().getBuild().getPluginManagement().getPlugins().isEmpty();
+	}
 
-    private boolean haveBuildPlugins()
-    {
-        return getProject().getBuild() != null && getProject().getBuild().getPlugins() != null
-            && !getProject().getBuild().getPlugins().isEmpty();
-    }
+	private boolean haveBuildPlugins() {
+		return getProject().getBuild() != null && getProject().getBuild().getPlugins() != null
+				&& !getProject().getBuild().getPlugins().isEmpty();
+	}
 
-    /**
-     * generates an empty report in case there are no sources to generate a report with
-     *
-     * @param locale the locale to generate the report for.
-     * @param sink the report formatting tool
-     */
-    protected void doGenerateReport( Locale locale, Sink sink )
-        throws MavenReportException
-    {
-        Set<Plugin> pluginManagement = new TreeSet<>( new PluginComparator() );
-        if ( haveBuildPluginManagementPlugins() )
-        {
-            pluginManagement.addAll( getProject().getBuild().getPluginManagement().getPlugins() );
-        }
+	/**
+	 * generates an empty report in case there are no sources to generate a report
+	 * with
+	 *
+	 * @param locale the locale to generate the report for.
+	 * @param sink   the report formatting tool
+	 */
+	protected void doGenerateReport(Locale locale, Sink sink) throws MavenReportException {
+		Set<Plugin> pluginManagement = new TreeSet<>(new PluginComparator());
+		if (haveBuildPluginManagementPlugins()) {
+			pluginManagement.addAll(getProject().getBuild().getPluginManagement().getPlugins());
+		}
 
-        Set<Plugin> plugins = new TreeSet<>( new PluginComparator() );
-        if ( haveBuildPlugins() )
-        {
-            plugins.addAll( getProject().getBuild().getPlugins() );
-        }
+		Set<Plugin> plugins = new TreeSet<>(new PluginComparator());
+		if (haveBuildPlugins()) {
+			plugins.addAll(getProject().getBuild().getPlugins());
+		}
 
-        plugins = removePluginManagment( plugins, pluginManagement );
+		plugins = removePluginManagment(plugins, pluginManagement);
 
-        try
-        {
-            Map<Plugin, PluginUpdatesDetails> pluginUpdates =
-                getHelper().lookupPluginsUpdates( plugins, getAllowSnapshots() );
-            Map<Plugin, PluginUpdatesDetails> pluginManagementUpdates =
-                getHelper().lookupPluginsUpdates( pluginManagement, getAllowSnapshots() );
-            for ( String format : formats )
-            {
-                if ( "html".equals( format ) )
-                {
-                    PluginUpdatesRenderer renderer =
-                        new PluginUpdatesRenderer( sink, getI18n(), getOutputName(), locale, pluginUpdates,
-                                                   pluginManagementUpdates );
-                    renderer.render();
-                }
-                else if ( "xml".equals( format ) )
-                {
-                    File outputDir = new File(getProject().getBuild().getDirectory());
-                    if (!outputDir.exists())
-                    {
-                        outputDir.mkdirs();
-                    }
-                    String outputFile =
-                        outputDir.getAbsolutePath() + File.separator + getOutputName() + ".xml";
-                    PluginUpdatesXmlRenderer xmlGenerator =
-                        new PluginUpdatesXmlRenderer( pluginUpdates, pluginManagementUpdates, outputFile );
-                    xmlGenerator.render();
-                }
-            }
-        }
-        catch ( InvalidVersionSpecificationException | ArtifactMetadataRetrievalException e )
-        {
-            throw new MavenReportException( e.getMessage(), e );
-        }
-    }
+		try {
+			Map<Plugin, PluginUpdatesDetails> pluginUpdates = getHelper().lookupPluginsUpdates(plugins,
+					getAllowSnapshots());
+			Map<Plugin, PluginUpdatesDetails> pluginManagementUpdates = getHelper()
+					.lookupPluginsUpdates(pluginManagement, getAllowSnapshots());
+			for (String format : formats) {
+				if ("html".equals(format)) {
+					PluginUpdatesRenderer renderer = new PluginUpdatesRenderer(sink, getI18n(), getOutputName(), locale,
+							pluginUpdates, pluginManagementUpdates);
+					renderer.render();
+				} else if ("xml".equals(format)) {
+					File outputDir = new File(getProject().getBuild().getDirectory());
+					if (!outputDir.exists()) {
+						outputDir.mkdirs();
+					}
+					String outputFile = outputDir.getAbsolutePath() + File.separator + getOutputName() + ".xml";
+					PluginUpdatesXmlRenderer xmlGenerator = new PluginUpdatesXmlRenderer(pluginUpdates,
+							pluginManagementUpdates, outputFile);
+					xmlGenerator.render();
+				}
+			}
+		} catch (InvalidVersionSpecificationException | ArtifactMetadataRetrievalException e) {
+			throw new MavenReportException(e.getMessage(), e);
+		}
+	}
 
-    /**
-     * Returns a set of dependencies where the dependencies which are defined in the dependency management section have
-     * been filtered out.
-     *
-     * @param plugins The set of dependencies.
-     * @param pluginManagement The set of dependencies from the dependency management section.
-     * @return A new set of dependencies which are from the set of dependencies but not from the set of dependency
-     *         management dependencies.
-     * @since 1.0-beta-1
-     */
-    private static Set<Plugin> removePluginManagment( Set<Plugin> plugins, Set<Plugin> pluginManagement )
-    {
-        Set<Plugin> result = new TreeSet<>( new PluginComparator() );
-        for ( Plugin c : plugins )
-        {
-            boolean matched = false;
-            for ( Plugin t : pluginManagement )
-            {
-                if ( StringUtils.equals( t.getGroupId(), c.getGroupId() )
-                    && StringUtils.equals( t.getArtifactId(), c.getArtifactId() ) )
-                {
-                    matched = true;
-                    break;
-                }
-            }
-            if ( !matched )
-            {
-                result.add( c );
-            }
-        }
-        return result;
-    }
+	/**
+	 * Returns a set of dependencies where the dependencies which are defined in the
+	 * dependency management section have been filtered out.
+	 *
+	 * @param plugins          The set of dependencies.
+	 * @param pluginManagement The set of dependencies from the dependency
+	 *                         management section.
+	 * @return A new set of dependencies which are from the set of dependencies but
+	 *         not from the set of dependency management dependencies.
+	 * @since 1.0-beta-1
+	 */
+	private static Set<Plugin> removePluginManagment(Set<Plugin> plugins, Set<Plugin> pluginManagement) {
+		Set<Plugin> result = new TreeSet<>(new PluginComparator());
+		for (Plugin c : plugins) {
+			boolean matched = false;
+			for (Plugin t : pluginManagement) {
+				if (StringUtils.equals(t.getGroupId(), c.getGroupId())
+						&& StringUtils.equals(t.getArtifactId(), c.getArtifactId())) {
+					matched = true;
+					break;
+				}
+			}
+			if (!matched) {
+				result.add(c);
+			}
+		}
+		return result;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getOutputName()
-    {
-        return "plugin-updates-report";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getOutputName() {
+		return "plugin-updates-report";
+	}
 
 }
