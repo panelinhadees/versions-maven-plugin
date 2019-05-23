@@ -594,10 +594,11 @@ public class PomHelper {
 	 * @return the string (definately without token markers)
 	 */
 	private static String stripTokens(String expr) {
-		if (expr.startsWith("${") && expr.indexOf("}") == expr.length() - 1) {
-			expr = expr.substring(2, expr.length() - 1);
+		String auxExpr = expr;
+		if (auxExpr.startsWith("${") && auxExpr.indexOf("}") == auxExpr.length() - 1) {
+			auxExpr = auxExpr.substring(2, auxExpr.length() - 1);
 		}
-		return expr;
+		return auxExpr;
 	}
 
 	/**
@@ -1166,17 +1167,18 @@ public class PomHelper {
 	public static MavenProject getLocalRoot(MavenProjectBuilder builder, MavenProject project,
 			ArtifactRepository localRepository, ProfileManager globalProfileManager, Log logger) {
 		logger.info("Searching for local aggregator root...");
+		MavenProject auxProject = project;
 		while (true) {
-			final File parentDir = project.getBasedir().getParentFile();
+			final File parentDir = auxProject.getBasedir().getParentFile();
 			if (parentDir != null && parentDir.isDirectory()) {
 				logger.debug("Checking to see if " + parentDir + " is an aggregator parent");
 				File parent = new File(parentDir, "pom.xml");
 				if (parent.isFile()) {
 					try {
 						final MavenProject parentProject = builder.build(parent, localRepository, globalProfileManager);
-						if (getAllChildModules(parentProject, logger).contains(project.getBasedir().getName())) {
+						if (getAllChildModules(parentProject, logger).contains(auxProject.getBasedir().getName())) {
 							logger.debug(parentDir + " is an aggregator parent");
-							project = parentProject;
+							auxProject = parentProject;
 							continue;
 						} else {
 							logger.debug(parentDir + " is not an aggregator parent");
@@ -1186,8 +1188,8 @@ public class PomHelper {
 					}
 				}
 			}
-			logger.debug("Local aggregation root is " + project.getBasedir());
-			return project;
+			logger.debug("Local aggregation root is " + auxProject.getBasedir());
+			return auxProject;
 		}
 	}
 
@@ -1220,20 +1222,21 @@ public class PomHelper {
 	 */
 	private static Map<String, Model> getReactorModels(String path, Model model, MavenProject project, Log logger)
 			throws IOException {
+		String auxPath = path;
 		if (path.length() > 0 && !path.endsWith("/")) {
-			path += '/';
+			auxPath += '/';
 		}
 		Map<String, Model> result = new LinkedHashMap<>();
 		Map<String, Model> childResults = new LinkedHashMap<>();
 
-		File baseDir = path.length() > 0 ? new File(project.getBasedir(), path) : project.getBasedir();
+		File baseDir = auxPath.length() > 0 ? new File(project.getBasedir(), auxPath) : project.getBasedir();
 
 		Set<String> childModules = getAllChildModules(model, logger);
 
 		removeMissingChildModules(logger, baseDir, childModules);
 
 		for (String moduleName : childModules) {
-			String modulePath = path + moduleName;
+			String modulePath = auxPath + moduleName;
 
 			File moduleDir = new File(baseDir, moduleName);
 

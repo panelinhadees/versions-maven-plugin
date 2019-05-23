@@ -127,15 +127,16 @@ public final class VersionComparators {
 	}
 
 	static ArtifactVersion copySnapshot(ArtifactVersion source, ArtifactVersion destination) {
-		if (isSnapshot(destination)) {
-			destination = stripSnapshot(destination);
+		ArtifactVersion auxDest = destination;
+		if (isSnapshot(auxDest)) {
+			auxDest = stripSnapshot(destination);
 		}
 		Pattern matchSnapshotRegex = SNAPSHOT_PATTERN;
 		final Matcher matcher = matchSnapshotRegex.matcher(source.toString());
 		if (matcher.find()) {
-			return new DefaultArtifactVersion(destination.toString() + "-" + matcher.group(0));
+			return new DefaultArtifactVersion(auxDest.toString() + "-" + matcher.group(0));
 		} else {
-			return new DefaultArtifactVersion(destination.toString() + "-SNAPSHOT");
+			return new DefaultArtifactVersion(auxDest.toString() + "-SNAPSHOT");
 		}
 	}
 }
