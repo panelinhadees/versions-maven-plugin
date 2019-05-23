@@ -30,54 +30,45 @@ import java.util.Objects;
 /**
  * Details of a plugin's updates.
  */
-public class PluginUpdatesDetails
-{
-    private final ArtifactVersions artifactVersions;
+public class PluginUpdatesDetails {
+	private final ArtifactVersions artifactVersions;
 
-    private final Map dependencyVersions;
+	private final Map dependencyVersions;
 
-    private final boolean includeSnapshots;
+	private final boolean includeSnapshots;
 
-    public PluginUpdatesDetails( ArtifactVersions artifactVersions, Map dependencyVersions, boolean includeSnapshots )
-    {
-        Objects.requireNonNull( artifactVersions );
-        Objects.requireNonNull( dependencyVersions );
-        this.artifactVersions = artifactVersions;
-        this.dependencyVersions = dependencyVersions;
-        this.includeSnapshots = includeSnapshots;
-    }
+	public PluginUpdatesDetails(ArtifactVersions artifactVersions, Map dependencyVersions, boolean includeSnapshots) {
+		Objects.requireNonNull(artifactVersions);
+		Objects.requireNonNull(dependencyVersions);
+		this.artifactVersions = artifactVersions;
+		this.dependencyVersions = dependencyVersions;
+		this.includeSnapshots = includeSnapshots;
+	}
 
-    public ArtifactVersions getArtifactVersions()
-    {
-        return artifactVersions;
-    }
+	public ArtifactVersions getArtifactVersions() {
+		return artifactVersions;
+	}
 
-    public Map getDependencyVersions()
-    {
-        return dependencyVersions;
-    }
+	public Map getDependencyVersions() {
+		return dependencyVersions;
+	}
 
-    public boolean isArtifactUpdateAvailable()
-    {
-        return artifactVersions.getAllUpdates( UpdateScope.ANY, includeSnapshots ).length > 0;
-    }
+	public boolean isArtifactUpdateAvailable() {
+		return artifactVersions.getAllUpdates(UpdateScope.ANY, includeSnapshots).length > 0;
+	}
 
-    public boolean isDependencyUpdateAvailable()
-    {
-        for ( Iterator i = dependencyVersions.values().iterator(); i.hasNext(); )
-        {
-            ArtifactVersions versions = (ArtifactVersions) i.next();
-            ArtifactVersion[] dependencyUpdates = versions.getAllUpdates( UpdateScope.ANY, includeSnapshots );
-            if ( dependencyUpdates != null && dependencyUpdates.length > 0 )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+	public boolean isDependencyUpdateAvailable() {
+		for (Iterator i = dependencyVersions.values().iterator(); i.hasNext();) {
+			ArtifactVersions versions = (ArtifactVersions) i.next();
+			ArtifactVersion[] dependencyUpdates = versions.getAllUpdates(UpdateScope.ANY, includeSnapshots);
+			if (dependencyUpdates != null && dependencyUpdates.length > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public boolean isUpdateAvailable()
-    {
-        return isArtifactUpdateAvailable() || isDependencyUpdateAvailable();
-    }
+	public boolean isUpdateAvailable() {
+		return isArtifactUpdateAvailable() || isDependencyUpdateAvailable();
+	}
 }

@@ -24,44 +24,38 @@ import org.apache.maven.model.Dependency;
 import java.util.Comparator;
 
 /**
- * A comparator used to sort dependencies by group id, artifact id and finally version.
+ * A comparator used to sort dependencies by group id, artifact id and finally
+ * version.
  *
  * @since 1.0-alpha-1
  */
-public class DependencyComparator
-    implements Comparator<Dependency>
-{
+public class DependencyComparator implements Comparator<Dependency> {
 
-    /**
-     * @param d1 the first dependency
-     * @param d2 the second dependency.
-     * @return the comparison result
-     * @see java.util.Comparator#compare(Object, Object)
-     * @since 1.0-alpha-1
-     */
-    public int compare( Dependency d1, Dependency d2 )
-    {
-        int r = d1.getGroupId().compareTo( d2.getGroupId() );
-        if ( r == 0 )
-        {
-            r = d1.getArtifactId().compareTo( d2.getArtifactId() );
-        }
-        if ( r == 0 )
-        {
-            String v1 = d1.getVersion();
-            String v2 = d2.getVersion();
-            if ( v1 == null )
-            {
-                // hope I got the +1/-1 the right way around
-                return v2 == null ? 0 : -1;
-            }
-            if ( v2 == null )
-            {
-                return 1;
-            }
-            r = v1.compareTo( v2 );
-        }
-        return r;
-    }
+	/**
+	 * @param d1 the first dependency
+	 * @param d2 the second dependency.
+	 * @return the comparison result
+	 * @see java.util.Comparator#compare(Object, Object)
+	 * @since 1.0-alpha-1
+	 */
+	public int compare(Dependency d1, Dependency d2) {
+		int r = d1.getGroupId().compareTo(d2.getGroupId());
+		if (r == 0) {
+			r = d1.getArtifactId().compareTo(d2.getArtifactId());
+		}
+		if (r == 0) {
+			String v1 = d1.getVersion();
+			String v2 = d2.getVersion();
+			if (v1 == null) {
+				// hope I got the +1/-1 the right way around
+				return v2 == null ? 0 : -1;
+			}
+			if (v2 == null) {
+				return 1;
+			}
+			r = v1.compareTo(v2);
+		}
+		return r;
+	}
 
 }

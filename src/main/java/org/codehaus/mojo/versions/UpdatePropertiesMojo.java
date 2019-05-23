@@ -36,127 +36,119 @@ import java.util.Map;
  * @author Stephen Connolly
  * @since 1.0-alpha-1
  */
-@Mojo( name = "update-properties", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UpdatePropertiesMojo
-    extends AbstractVersionsDependencyUpdaterMojo
-{
+@Mojo(name = "update-properties", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UpdatePropertiesMojo extends AbstractVersionsDependencyUpdaterMojo {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Any restrictions that apply to specific properties.
-     *
-     * @since 1.0-alpha-3
-     */
-    @Parameter
-    private Property[] properties;
+	/**
+	 * Any restrictions that apply to specific properties.
+	 *
+	 * @since 1.0-alpha-3
+	 */
+	@Parameter
+	private Property[] properties;
 
-    /**
-     * A comma separated list of properties to update.
-     *
-     * @since 1.0-alpha-1
-     */
-    @Parameter( property = "includeProperties" )
-    private String includeProperties = null;
+	/**
+	 * A comma separated list of properties to update.
+	 *
+	 * @since 1.0-alpha-1
+	 */
+	@Parameter(property = "includeProperties")
+	private String includeProperties = null;
 
-    /**
-     * A comma separated list of properties to not update.
-     *
-     * @since 1.0-alpha-1
-     */
-    @Parameter( property = "excludeProperties" )
-    private String excludeProperties = null;
+	/**
+	 * A comma separated list of properties to not update.
+	 *
+	 * @since 1.0-alpha-1
+	 */
+	@Parameter(property = "excludeProperties")
+	private String excludeProperties = null;
 
-    /**
-     * Whether properties linking versions should be auto-detected or not.
-     *
-     * @since 1.0-alpha-2
-     */
-    @Parameter( property = "autoLinkItems", defaultValue = "true" )
-    private boolean autoLinkItems;
+	/**
+	 * Whether properties linking versions should be auto-detected or not.
+	 *
+	 * @since 1.0-alpha-2
+	 */
+	@Parameter(property = "autoLinkItems", defaultValue = "true")
+	private boolean autoLinkItems;
 
-    /**
-     * If a property points to a version like <code>1.2.3-SNAPSHOT</code> and your repo contains a version like
-     * <code>1.1.0</code> without settings this to <code>true</code> the property will not being changed.
-     * 
-     * @since 2.4
-     */
-    @Parameter( property = "allowDowngrade", defaultValue = "false" )
-    private boolean allowDowngrade;
+	/**
+	 * If a property points to a version like <code>1.2.3-SNAPSHOT</code> and your
+	 * repo contains a version like <code>1.1.0</code> without settings this to
+	 * <code>true</code> the property will not being changed.
+	 * 
+	 * @since 2.4
+	 */
+	@Parameter(property = "allowDowngrade", defaultValue = "false")
+	private boolean allowDowngrade;
 
-    /**
-     * Whether to allow the major version number to be changed.
-     *
-     * @since 2.4
-     */
-    @Parameter( property = "allowMajorUpdates", defaultValue = "true" )
-    protected boolean allowMajorUpdates;
+	/**
+	 * Whether to allow the major version number to be changed.
+	 *
+	 * @since 2.4
+	 */
+	@Parameter(property = "allowMajorUpdates", defaultValue = "true")
+	protected boolean allowMajorUpdates;
 
-    /**
-     * Whether to allow the minor version number to be changed.
-     *
-     * @since 2.4
-     */
-    @Parameter( property = "allowMinorUpdates", defaultValue = "true" )
-    protected boolean allowMinorUpdates;
+	/**
+	 * Whether to allow the minor version number to be changed.
+	 *
+	 * @since 2.4
+	 */
+	@Parameter(property = "allowMinorUpdates", defaultValue = "true")
+	protected boolean allowMinorUpdates;
 
-    /**
-     * Whether to allow the incremental version number to be changed.
-     *
-     * @since 2.4
-     */
-    @Parameter( property = "allowIncrementalUpdates", defaultValue = "true" )
-    protected boolean allowIncrementalUpdates;
+	/**
+	 * Whether to allow the incremental version number to be changed.
+	 *
+	 * @since 2.4
+	 */
+	@Parameter(property = "allowIncrementalUpdates", defaultValue = "true")
+	protected boolean allowIncrementalUpdates;
 
-    // -------------------------- STATIC METHODS --------------------------
+	// -------------------------- STATIC METHODS --------------------------
 
-    // -------------------------- OTHER METHODS --------------------------
+	// -------------------------- OTHER METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws MojoExecutionException when things go wrong
-     * @throws MojoFailureException when things go wrong in a very bad way
-     * @throws XMLStreamException when things go wrong with XML streaming
-     * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
-     * @since 1.0-alpha-1
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        Map<Property, PropertyVersions> propertyVersions =
-            this.getHelper().getVersionPropertiesMap( getProject(), properties, includeProperties, excludeProperties,
-                                                      autoLinkItems );
-        for ( Map.Entry<Property, PropertyVersions> entry : propertyVersions.entrySet() )
-        {
-            Property property = entry.getKey();
-            PropertyVersions version = entry.getValue();
+	/**
+	 * @param pom the pom to update.
+	 * @throws MojoExecutionException when things go wrong
+	 * @throws MojoFailureException   when things go wrong in a very bad way
+	 * @throws XMLStreamException     when things go wrong with XML streaming
+	 * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
+	 * @since 1.0-alpha-1
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		Map<Property, PropertyVersions> propertyVersions = this.getHelper().getVersionPropertiesMap(getProject(),
+				properties, includeProperties, excludeProperties, autoLinkItems);
+		for (Map.Entry<Property, PropertyVersions> entry : propertyVersions.entrySet()) {
+			Property property = entry.getKey();
+			PropertyVersions version = entry.getValue();
 
-            final String currentVersion = getProject().getProperties().getProperty( property.getName() );
-            if ( currentVersion == null )
-            {
-                continue;
-            }
-            boolean canUpdateProperty = true;
-            for ( ArtifactAssociation association : version.getAssociations() )
-            {
-                if ( !( isIncluded( association.getArtifact() ) ) )
-                {
-                    getLog().info( "Not updating the property ${" + property.getName()
-                        + "} because it is used by artifact " + association.getArtifact().toString()
-                        + " and that artifact is not included in the list of " + " allowed artifacts to be updated." );
-                    canUpdateProperty = false;
-                    break;
-                }
-            }
+			final String currentVersion = getProject().getProperties().getProperty(property.getName());
+			if (currentVersion == null) {
+				continue;
+			}
+			boolean canUpdateProperty = true;
+			for (ArtifactAssociation association : version.getAssociations()) {
+				if (!(isIncluded(association.getArtifact()))) {
+					getLog().info("Not updating the property ${" + property.getName()
+							+ "} because it is used by artifact " + association.getArtifact().toString()
+							+ " and that artifact is not included in the list of "
+							+ " allowed artifacts to be updated.");
+					canUpdateProperty = false;
+					break;
+				}
+			}
 
-            if ( canUpdateProperty )
-            {
-                int segment =
-                    determineUnchangedSegment( allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates );
-                updatePropertyToNewestVersion( pom, property, version, currentVersion, allowDowngrade, segment );
-            }
+			if (canUpdateProperty) {
+				int segment = determineUnchangedSegment(allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates);
+				updatePropertyToNewestVersion(pom, property, version, currentVersion, allowDowngrade, segment);
+			}
 
-        }
-    }
+		}
+	}
 
 }

@@ -39,89 +39,74 @@ import javax.xml.stream.XMLStreamException;
  * @author Stephen Connolly
  * @since 1.0-alpha-1
  */
-@Mojo( name = "update-parent", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UpdateParentMojo
-    extends AbstractVersionsUpdaterMojo
-{
+@Mojo(name = "update-parent", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UpdateParentMojo extends AbstractVersionsUpdaterMojo {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Version specification to control artifact resolution.
-     *
-     * @since 1.0-alpha-1
-     */
-    @Parameter( property = "parentVersion", defaultValue = "null" )
-    protected String parentVersion = null;
+	/**
+	 * Version specification to control artifact resolution.
+	 *
+	 * @since 1.0-alpha-1
+	 */
+	@Parameter(property = "parentVersion", defaultValue = "null")
+	protected String parentVersion = null;
 
-    // -------------------------- OTHER METHODS --------------------------
+	// -------------------------- OTHER METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws MojoExecutionException when things go wrong
-     * @throws MojoFailureException when things go wrong in a very bad way
-     * @throws XMLStreamException when things go wrong with XML streaming
-     * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
-     * @since 1.0-alpha-1
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        if ( getProject().getParent() == null )
-        {
-            getLog().info( "Project does not have a parent" );
-            return;
-        }
+	/**
+	 * @param pom the pom to update.
+	 * @throws MojoExecutionException when things go wrong
+	 * @throws MojoFailureException   when things go wrong in a very bad way
+	 * @throws XMLStreamException     when things go wrong with XML streaming
+	 * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
+	 * @since 1.0-alpha-1
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		if (getProject().getParent() == null) {
+			getLog().info("Project does not have a parent");
+			return;
+		}
 
-        if ( reactorProjects.contains( getProject().getParent() ) )
-        {
-            getLog().info( "Project's parent is part of the reactor" );
-            return;
-        }
+		if (reactorProjects.contains(getProject().getParent())) {
+			getLog().info("Project's parent is part of the reactor");
+			return;
+		}
 
-        String currentVersion = getProject().getParent().getVersion();
-        String version = currentVersion;
+		String currentVersion = getProject().getParent().getVersion();
+		String version = currentVersion;
 
-        if ( parentVersion != null )
-        {
-            version = parentVersion;
-        }
+		if (parentVersion != null) {
+			version = parentVersion;
+		}
 
-        VersionRange versionRange;
-        try
-        {
-            versionRange = VersionRange.createFromVersionSpec( version );
-        }
-        catch ( InvalidVersionSpecificationException e )
-        {
-            throw new MojoExecutionException( "Invalid version range specification: " + version, e );
-        }
+		VersionRange versionRange;
+		try {
+			versionRange = VersionRange.createFromVersionSpec(version);
+		} catch (InvalidVersionSpecificationException e) {
+			throw new MojoExecutionException("Invalid version range specification: " + version, e);
+		}
 
-        Artifact artifact = artifactFactory.createDependencyArtifact( getProject().getParent().getGroupId(),
-                                                                      getProject().getParent().getArtifactId(),
-                                                                      versionRange, "pom", null, null );
+		Artifact artifact = artifactFactory.createDependencyArtifact(getProject().getParent().getGroupId(),
+				getProject().getParent().getArtifactId(), versionRange, "pom", null, null);
 
-        ArtifactVersion artifactVersion;
-        try
-        {
-            artifactVersion = findLatestVersion( artifact, versionRange, null, false );
-        }
-        catch ( ArtifactMetadataRetrievalException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
+		ArtifactVersion artifactVersion;
+		try {
+			artifactVersion = findLatestVersion(artifact, versionRange, null, false);
+		} catch (ArtifactMetadataRetrievalException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
 
-        if ( !shouldApplyUpdate( artifact, currentVersion, artifactVersion ) )
-        {
-            return;
-        }
+		if (!shouldApplyUpdate(artifact, currentVersion, artifactVersion)) {
+			return;
+		}
 
-        getLog().info( "Updating parent from " + currentVersion + " to " + artifactVersion.toString() );
+		getLog().info("Updating parent from " + currentVersion + " to " + artifactVersion.toString());
 
-        if ( PomHelper.setProjectParentVersion( pom, artifactVersion.toString() ) )
-        {
-            getLog().debug( "Made an update from " + currentVersion + " to " + artifactVersion.toString() );
-        }
-    }
+		if (PomHelper.setProjectParentVersion(pom, artifactVersion.toString())) {
+			getLog().debug("Made an update from " + currentVersion + " to " + artifactVersion.toString());
+		}
+	}
 
 }

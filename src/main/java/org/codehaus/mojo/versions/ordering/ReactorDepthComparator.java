@@ -26,35 +26,29 @@ import java.util.Comparator;
 import java.util.Map;
 
 /**
- * Compares project paths relative to the base directory based on their depth in a reactor
+ * Compares project paths relative to the base directory based on their depth in
+ * a reactor
  *
  * @author Stephen Connolly
  * @since 15-Sep-2010 14:54:42
  */
-public class ReactorDepthComparator
-    implements Comparator<String>
-{
-    private final Map<String, Model> reactor;
+public class ReactorDepthComparator implements Comparator<String> {
+	private final Map<String, Model> reactor;
 
-    public ReactorDepthComparator( Map<String, Model> reactor )
-    {
-        this.reactor = reactor;
-    }
+	public ReactorDepthComparator(Map<String, Model> reactor) {
+		this.reactor = reactor;
+	}
 
-    public int compare( String o1, String o2 )
-    {
-        final Model m1 = reactor.get( o1 );
-        final Model m2 = reactor.get( o2 );
-        final int d1 = PomHelper.getReactorParentCount( reactor, m1 );
-        final int d2 = PomHelper.getReactorParentCount( reactor, m2 );
-        if ( d1 < d2 )
-        {
-            return -1;
-        }
-        else if ( d1 > d2 )
-        {
-            return 1;
-        }
-        return PomHelper.getGAV( m1 ).compareTo( PomHelper.getGAV( m2 ) );
-    }
+	public int compare(String o1, String o2) {
+		final Model m1 = reactor.get(o1);
+		final Model m2 = reactor.get(o2);
+		final int d1 = PomHelper.getReactorParentCount(reactor, m1);
+		final int d2 = PomHelper.getReactorParentCount(reactor, m2);
+		if (d1 < d2) {
+			return -1;
+		} else if (d1 > d2) {
+			return 1;
+		}
+		return PomHelper.getGAV(m1).compareTo(PomHelper.getGAV(m2));
+	}
 }
