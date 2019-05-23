@@ -409,18 +409,17 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 	 * @return list of patterns
 	 */
 	protected List<String> separatePatterns(String includeString) {
-		if (includeString == null) {
-			return Collections.emptyList();
+		List<String> patterns = Collections.emptyList();
+		if (includeString != null) {
+			patterns = new ArrayList<>();
+			int indexOf = nextCommaIndex(includeString);
+			while (indexOf >= 0) {
+				patterns.add(includeString.substring(0, indexOf));
+				includeString = includeString.substring(indexOf + 1);
+				indexOf = nextCommaIndex(includeString);
+			}
+			patterns.add(includeString);
 		}
-
-		List<String> patterns = new ArrayList<>();
-		int indexOf = nextCommaIndex(includeString);
-		while (indexOf >= 0) {
-			patterns.add(includeString.substring(0, indexOf));
-			includeString = includeString.substring(indexOf + 1);
-			indexOf = nextCommaIndex(includeString);
-		}
-		patterns.add(includeString);
 
 		return patterns;
 	}
