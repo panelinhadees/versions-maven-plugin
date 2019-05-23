@@ -380,7 +380,7 @@ public abstract class UpdateScope implements Comparable, Serializable {
 	 *                                  null
 	 */
 	public static UpdateScope valueOf(String name) {
-		UpdateScope result = (UpdateScope) levelConstants.get(name);
+		UpdateScope result = (UpdateScope) LEVELCONSTANTS.get(name);
 		if (result != null) {
 			return result;
 		}
@@ -431,7 +431,7 @@ public abstract class UpdateScope implements Comparable, Serializable {
 		}
 	}
 
-	private static final Map levelConstants;
+	private static final Map LEVELCONSTANTS;
 
 	static {
 		Map map = new HashMap(5);
@@ -440,7 +440,7 @@ public abstract class UpdateScope implements Comparable, Serializable {
 		map.put(MINOR.name(), MINOR);
 		map.put(MAJOR.name(), MAJOR);
 		map.put(ANY.name(), ANY);
-		levelConstants = map;
+		LEVELCONSTANTS = map;
 	}
 
 	/**
