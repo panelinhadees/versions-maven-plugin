@@ -412,12 +412,13 @@ public abstract class AbstractVersionsDependencyUpdaterMojo extends AbstractVers
 
 		List<String> patterns = new ArrayList<>();
 		int indexOf = nextCommaIndex(includeString);
+		String pattern = includeString;
 		while (indexOf >= 0) {
-			patterns.add(includeString.substring(0, indexOf));
-			includeString = includeString.substring(indexOf + 1);
-			indexOf = nextCommaIndex(includeString);
+			patterns.add(pattern.substring(0, indexOf));
+			pattern = pattern.substring(indexOf + 1);
+			indexOf = nextCommaIndex(pattern);
 		}
-		patterns.add(includeString);
+		patterns.add(pattern);
 
 		return patterns;
 	}

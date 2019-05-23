@@ -57,7 +57,8 @@ public class MercuryVersionComparator extends AbstractVersionComparator {
 		StringBuilder result = new StringBuilder(version.length() + 10);
 		StringTokenizer tok = new StringTokenizer(version, ".-");
 		int index = 0;
-		while (tok.hasMoreTokens() && segment > 0) {
+		int seg = segment;
+		while (tok.hasMoreTokens() && seg > 0) {
 			String token = tok.nextToken();
 			result.append(token);
 			index += token.length();
@@ -66,9 +67,9 @@ public class MercuryVersionComparator extends AbstractVersionComparator {
 				result.append(version.substring(index, index + 1));
 				index++;
 			}
-			segment--;
+			seg--;
 		}
-		if (segment == 0) {
+		if (seg == 0) {
 			if (tok.hasMoreTokens()) {
 				String token = tok.nextToken();
 				String newToken;
