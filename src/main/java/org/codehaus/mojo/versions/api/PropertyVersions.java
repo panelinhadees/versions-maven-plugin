@@ -48,6 +48,7 @@ import java.util.TreeSet;
  * @author Stephen Connolly
  * @since 1.0-alpha-3
  */
+
 public class PropertyVersions extends AbstractVersionDetails {
 	private final String name;
 
@@ -431,7 +432,7 @@ public class PropertyVersions extends AbstractVersionDetails {
 		}
 
 		StringBuilder newVersion = new StringBuilder();
-		newVersion.append(segment >= 0 ? version.getMajorVersion() : 0);
+		newVersion.append(version.getMajorVersion());
 		if (segmentCount > 0) {
 			newVersion.append(".").append(segment >= 1 ? version.getMinorVersion() : 0);
 		}
