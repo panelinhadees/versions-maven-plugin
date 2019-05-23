@@ -527,7 +527,7 @@ public class PropertyVersions
         }
 
         StringBuilder newVersion = new StringBuilder();
-        newVersion.append(segment >= 0 ? version.getMajorVersion() : 0);
+        newVersion.append(version.getMajorVersion());
         if (segmentCount > 0)
         {
             newVersion.append(".")
