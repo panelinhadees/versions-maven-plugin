@@ -205,10 +205,10 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 											curState.version = pom.getElementText().trim();
 											continue;
 										}
+										
+										pathStack.push(curState);
+										curState = new StackState(curState.path + "/" + elementName);
 									}
-
-									pathStack.push(curState);
-									curState = new StackState(curState.path + "/" + elementName);
 								} else if (event.isEndElement()) {
 									if (curState != null && pathRegex.matcher(curState.path).matches()) {
 										if (curState.artifactId != null) {
@@ -743,10 +743,9 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 						curState.version = pom.getElementText().trim();
 						continue;
 					}
+					pathStack.push(curState);
+					curState = new StackState(curState.path + "/" + elementName);
 				}
-
-				pathStack.push(curState);
-				curState = new StackState(curState.path + "/" + elementName);
 			} else if (event.isEndElement()) {
 				if (curState != null && pathRegex.matcher(curState.path).matches()) {
 					if (curState.artifactId != null && curState.version != null) {
