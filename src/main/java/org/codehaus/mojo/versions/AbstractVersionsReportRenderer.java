@@ -302,62 +302,11 @@ public abstract class AbstractVersionsReportRenderer extends AbstractMavenReport
 			sink.nonBreakingSpace();
 			sink.text(getText("report.noUpdatesAvailable"));
 		}
-		sink.tableCell_();
-		sink.tableRow_();
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.groupId"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
-		sink.text(dependency.getGroupId());
-		sink.tableCell_();
-		sink.tableRow_();
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.artifactId"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
-		sink.text(dependency.getArtifactId());
-		sink.tableCell_();
-		sink.tableRow_();
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.currentVersion"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
-		sink.text(dependency.getVersion());
-		sink.tableCell_();
-		sink.tableRow_();
-		if (includeScope) {
-			sink.tableRow();
-			sink.tableHeaderCell(headerAttributes);
-			sink.text(getText("report.scope"));
-			sink.tableHeaderCell_();
-			sink.tableCell(cellAttributes);
-			sink.text(dependency.getScope());
-			sink.tableCell_();
-			sink.tableRow_();
-		}
-		if (includeClassifier) {
-			sink.tableRow();
-			sink.tableHeaderCell(headerAttributes);
-			sink.text(getText("report.classifier"));
-			sink.tableHeaderCell_();
-			sink.tableCell(cellAttributes);
-			sink.text(dependency.getClassifier());
-			sink.tableCell_();
-			sink.tableRow_();
-		}
-		if (includeType) {
-			sink.tableRow();
-			sink.tableHeaderCell(headerAttributes);
-			sink.text(getText("report.type"));
-			sink.tableHeaderCell_();
-			sink.tableCell(cellAttributes);
-			sink.text(dependency.getType());
-			sink.tableCell_();
-			sink.tableRow_();
-		}
+		
+		auxDisplayDetailsTable(dependency, headerAttributes, cellAttributes);
+		
+		verifyTableInclude(dependency, includeScope, includeClassifier, includeType, headerAttributes, cellAttributes);
+		
 		if (versions != null && versions.length > 0) {
 			sink.tableRow();
 			sink.tableHeaderCell(headerAttributes);
@@ -407,6 +356,70 @@ public abstract class AbstractVersionsReportRenderer extends AbstractMavenReport
 		}
 		sink.tableRows_();
 		sink.table_();
+	}
+
+	private void verifyTableInclude(Dependency dependency, boolean includeScope, boolean includeClassifier,
+			boolean includeType, final SinkEventAttributes headerAttributes, final SinkEventAttributes cellAttributes) {
+		if (includeScope) {
+			sink.tableRow();
+			sink.tableHeaderCell(headerAttributes);
+			sink.text(getText("report.scope"));
+			sink.tableHeaderCell_();
+			sink.tableCell(cellAttributes);
+			sink.text(dependency.getScope());
+			sink.tableCell_();
+			sink.tableRow_();
+		}
+		if (includeClassifier) {
+			sink.tableRow();
+			sink.tableHeaderCell(headerAttributes);
+			sink.text(getText("report.classifier"));
+			sink.tableHeaderCell_();
+			sink.tableCell(cellAttributes);
+			sink.text(dependency.getClassifier());
+			sink.tableCell_();
+			sink.tableRow_();
+		}
+		if (includeType) {
+			sink.tableRow();
+			sink.tableHeaderCell(headerAttributes);
+			sink.text(getText("report.type"));
+			sink.tableHeaderCell_();
+			sink.tableCell(cellAttributes);
+			sink.text(dependency.getType());
+			sink.tableCell_();
+			sink.tableRow_();
+		}
+	}
+
+	private void auxDisplayDetailsTable(Dependency dependency, final SinkEventAttributes headerAttributes,
+			final SinkEventAttributes cellAttributes) {
+		sink.tableCell_();
+		sink.tableRow_();
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.groupId"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		sink.text(dependency.getGroupId());
+		sink.tableCell_();
+		sink.tableRow_();
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.artifactId"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		sink.text(dependency.getArtifactId());
+		sink.tableCell_();
+		sink.tableRow_();
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.currentVersion"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		sink.text(dependency.getVersion());
+		sink.tableCell_();
+		sink.tableRow_();
 	}
 
 	protected void renderDependencySummaryTable(Map<Dependency, ArtifactVersions> map) {
@@ -547,22 +560,9 @@ public abstract class AbstractVersionsReportRenderer extends AbstractMavenReport
 			sink.nonBreakingSpace();
 			sink.text(getText("report.noUpdatesAvailable"));
 		}
-		sink.tableCell_();
-		sink.tableRow_();
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.property"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
-		sink.text("${" + property.getName() + "}");
-		sink.tableCell_();
-		sink.tableRow_();
-
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.associations"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
+		
+		auxRenderPropertyDetailTable(headerAttributes, cellAttributes, property);
+		
 		ArtifactAssociation[] associations = versions.getAssociations();
 		for (int i = 0; i < associations.length; i++) {
 			if (i > 0) {
@@ -582,68 +582,99 @@ public abstract class AbstractVersionsReportRenderer extends AbstractMavenReport
 		sink.tableCell_();
 		sink.tableRow_();
 		if (artifactVersions.length > 0) {
-			sink.tableRow();
-			sink.tableHeaderCell(headerAttributes);
-			sink.text(getText("report.updateVersions"));
-			sink.tableHeaderCell_();
-			sink.tableCell(cellAttributes);
-			boolean someNotAllowed = false;
-			for (int i = 0; i < artifactVersions.length; i++) {
-				if (i > 0) {
-					sink.lineBreak();
-				}
-				boolean allowed = (rangeVersions.contains(artifactVersions[i].toString()));
-				boolean bold = equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.SUBINCREMENTAL))
-						|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.INCREMENTAL))
-						|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.INCREMENTAL))
-						|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MINOR))
-						|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MINOR))
-						|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MAJOR))
-						|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MAJOR));
-				if (!allowed) {
-					sink.text("* ");
-					someNotAllowed = true;
-				}
-				if (allowed && bold) {
-					safeBold();
-				}
-				sink.text(artifactVersions[i].toString());
-				if (bold) {
-					if (allowed) {
-						safeBold_();
-					}
-					sink.nonBreakingSpace();
-					safeItalic();
-					if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.SUBINCREMENTAL))) {
-						sink.text(getText("report.nextVersion"));
-					} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.INCREMENTAL))) {
-						sink.text(getText("report.nextIncremental"));
-					} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.INCREMENTAL))) {
-						sink.text(getText("report.latestIncremental"));
-					} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MINOR))) {
-						sink.text(getText("report.nextMinor"));
-					} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MINOR))) {
-						sink.text(getText("report.latestMinor"));
-					} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MAJOR))) {
-						sink.text(getText("report.nextMajor"));
-					} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MAJOR))) {
-						sink.text(getText("report.latestMajor"));
-					}
+			displayArtifactDetails(versions, headerAttributes, cellAttributes, artifactVersions, rangeVersions);
+		}
+		auxRenderCellsAndRowsDetailsTable(headerAttributes, cellAttributes, property);
+	}
 
-					safeItalic_();
-				}
+	private void displayArtifactDetails(PropertyVersions versions, final SinkEventAttributes headerAttributes,
+			final SinkEventAttributes cellAttributes, ArtifactVersion[] artifactVersions, Set<String> rangeVersions) {
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.updateVersions"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		boolean someNotAllowed = false;
+		for (int i = 0; i < artifactVersions.length; i++) {
+			if (i > 0) {
+				sink.lineBreak();
 			}
-			if (someNotAllowed) {
-				sink.lineBreak();
-				sink.lineBreak();
+			boolean allowed = (rangeVersions.contains(artifactVersions[i].toString()));
+			boolean bold = equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.SUBINCREMENTAL))
+					|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.INCREMENTAL))
+					|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.INCREMENTAL))
+					|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MINOR))
+					|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MINOR))
+					|| equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MAJOR))
+					|| equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MAJOR));
+			if (!allowed) {
 				sink.text("* ");
+				someNotAllowed = true;
+			}
+			if (allowed && bold) {
+				safeBold();
+			}
+			sink.text(artifactVersions[i].toString());
+			if (bold) {
+				if (allowed) {
+					safeBold_();
+				}
+				sink.nonBreakingSpace();
 				safeItalic();
-				sink.text(getText("report.excludedVersion"));
+				if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.SUBINCREMENTAL))) {
+					sink.text(getText("report.nextVersion"));
+				} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.INCREMENTAL))) {
+					sink.text(getText("report.nextIncremental"));
+				} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.INCREMENTAL))) {
+					sink.text(getText("report.latestIncremental"));
+				} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MINOR))) {
+					sink.text(getText("report.nextMinor"));
+				} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MINOR))) {
+					sink.text(getText("report.latestMinor"));
+				} else if (equals(artifactVersions[i], versions.getOldestUpdate(UpdateScope.MAJOR))) {
+					sink.text(getText("report.nextMajor"));
+				} else if (equals(artifactVersions[i], versions.getNewestUpdate(UpdateScope.MAJOR))) {
+					sink.text(getText("report.latestMajor"));
+				}
+
 				safeItalic_();
 			}
-			sink.tableCell_();
-			sink.tableRow_();
 		}
+		if (someNotAllowed) {
+			sink.lineBreak();
+			sink.lineBreak();
+			sink.text("* ");
+			safeItalic();
+			sink.text(getText("report.excludedVersion"));
+			safeItalic_();
+		}
+		sink.tableCell_();
+		sink.tableRow_();
+	}
+	
+	private void auxRenderPropertyDetailTable(final SinkEventAttributes headerAttributes, 
+			final SinkEventAttributes cellAttributes, Property property){
+		
+		sink.tableCell_();
+		sink.tableRow_();
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.property"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		sink.text("${" + property.getName() + "}");
+		sink.tableCell_();
+		sink.tableRow_();
+
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.associations"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+	}
+	
+	private void auxRenderCellsAndRowsDetailsTable(final SinkEventAttributes headerAttributes, 
+			final SinkEventAttributes cellAttributes, Property property){
 		sink.tableRow();
 		sink.tableHeaderCell(headerAttributes);
 		sink.text(getText("report.versionRange"));

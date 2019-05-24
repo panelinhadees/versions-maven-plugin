@@ -311,18 +311,9 @@ public class PluginUpdatesRenderer extends AbstractVersionsReportRenderer {
 		headerAttributes.addAttribute(SinkEventAttributes.WIDTH, "20%");
 		final SinkEventAttributes cellAttributes = new SinkEventAttributeSet();
 		headerAttributes.addAttribute(SinkEventAttributes.WIDTH, "80%");
-		sink.section2();
-		sink.sectionTitle2();
-		sink.text(MessageFormat.format(getText("report.plugin"),
-				new Object[] { ArtifactUtils.versionlessKey(plugin.getGroupId(), plugin.getArtifactId()) }));
-		sink.sectionTitle2_();
-		sink.table();
-		sink.tableRows(new int[] { Sink.JUSTIFY_RIGHT, Sink.JUSTIFY_LEFT }, false);
-		sink.tableRow();
-		sink.tableHeaderCell(headerAttributes);
-		sink.text(getText("report.status"));
-		sink.tableHeaderCell_();
-		sink.tableCell(cellAttributes);
+		
+		auxRenderTable(headerAttributes, cellAttributes, plugin);
+		
 		ArtifactVersion[] versions = details.getArtifactVersions().getAllUpdates(UpdateScope.ANY);
 		if (details.getArtifactVersions().getOldestUpdate(UpdateScope.SUBINCREMENTAL) != null) {
 			renderWarningIcon();
@@ -345,6 +336,50 @@ public class PluginUpdatesRenderer extends AbstractVersionsReportRenderer {
 			sink.nonBreakingSpace();
 			sink.text(getText("report.noUpdatesAvailable"));
 		}
+		
+		auxRenderTable2(headerAttributes, cellAttributes, plugin);
+		
+		if (versions.length > 0) {
+			renderVersions(headerAttributes, cellAttributes, versions, details);
+		}
+		sink.tableRows_();
+		sink.table_();
+
+		if (!details.getDependencyVersions().isEmpty()) {
+			sink.section3();
+			sink.sectionTitle3();
+			sink.text(MessageFormat.format(getText("report.pluginDependencies"),
+					new Object[] { ArtifactUtils.versionlessKey(plugin.getGroupId(), plugin.getArtifactId()) }));
+			sink.sectionTitle3_();
+
+			renderDependencySummaryTable(details.getDependencyVersions(), false, true, true);
+
+			sink.section3_();
+
+			for (Iterator i = details.getDependencyVersions().entrySet().iterator(); i.hasNext();) {
+				Map.Entry entry = (Map.Entry) i.next();
+				renderDependencyDetail((Dependency) entry.getKey(), (ArtifactVersions) entry.getValue());
+			}
+		}
+		sink.section2_();
+	}
+	
+	private void auxRenderTable(final SinkEventAttributes headerAttributes, final SinkEventAttributes cellAttributes, Plugin plugin){
+		sink.section2();
+		sink.sectionTitle2();
+		sink.text(MessageFormat.format(getText("report.plugin"),
+				new Object[] { ArtifactUtils.versionlessKey(plugin.getGroupId(), plugin.getArtifactId()) }));
+		sink.sectionTitle2_();
+		sink.table();
+		sink.tableRows(new int[] { Sink.JUSTIFY_RIGHT, Sink.JUSTIFY_LEFT }, false);
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.status"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+	}
+	
+	private void auxRenderTable2(final SinkEventAttributes headerAttributes, final SinkEventAttributes cellAttributes, Plugin plugin){
 		sink.tableCell_();
 		sink.tableRow_();
 		sink.tableRow();
@@ -371,77 +406,59 @@ public class PluginUpdatesRenderer extends AbstractVersionsReportRenderer {
 		sink.text(plugin.getVersion());
 		sink.tableCell_();
 		sink.tableRow_();
-		if (versions.length > 0) {
-			sink.tableRow();
-			sink.tableHeaderCell(headerAttributes);
-			sink.text(getText("report.updateVersions"));
-			sink.tableHeaderCell_();
-			sink.tableCell(cellAttributes);
-			for (int i = 0; i < versions.length; i++) {
-				if (i > 0) {
-					sink.lineBreak();
-				}
-				boolean bold = equals(versions[i],
-						details.getArtifactVersions().getOldestUpdate(UpdateScope.SUBINCREMENTAL))
-						|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.INCREMENTAL))
-						|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.INCREMENTAL))
-						|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MINOR))
-						|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MINOR))
-						|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MAJOR))
-						|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MAJOR));
-				if (bold) {
-					safeBold();
-				}
-				sink.text(versions[i].toString());
-				if (bold) {
-					safeBold_();
-					sink.nonBreakingSpace();
-					safeItalic();
-					if (equals(versions[i],
-							details.getArtifactVersions().getOldestUpdate(UpdateScope.SUBINCREMENTAL))) {
-						sink.text(getText("report.nextVersion"));
-					} else if (equals(versions[i],
-							details.getArtifactVersions().getOldestUpdate(UpdateScope.INCREMENTAL))) {
-						sink.text(getText("report.nextIncremental"));
-					} else if (equals(versions[i],
-							details.getArtifactVersions().getNewestUpdate(UpdateScope.INCREMENTAL))) {
-						sink.text(getText("report.latestIncremental"));
-					} else if (equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MINOR))) {
-						sink.text(getText("report.nextMinor"));
-					} else if (equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MINOR))) {
-						sink.text(getText("report.latestMinor"));
-					} else if (equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MAJOR))) {
-						sink.text(getText("report.nextMajor"));
-					} else if (equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MAJOR))) {
-						sink.text(getText("report.latestMajor"));
-					}
-
-					safeItalic_();
-				}
+	}
+	
+	private void renderVersions(final SinkEventAttributes headerAttributes,  final SinkEventAttributes cellAttributes,
+			ArtifactVersion[] versions, PluginUpdatesDetails details){
+		sink.tableRow();
+		sink.tableHeaderCell(headerAttributes);
+		sink.text(getText("report.updateVersions"));
+		sink.tableHeaderCell_();
+		sink.tableCell(cellAttributes);
+		for (int i = 0; i < versions.length; i++) {
+			if (i > 0) {
+				sink.lineBreak();
 			}
-			sink.tableCell_();
-			sink.tableRow_();
-		}
-		sink.tableRows_();
-		sink.table_();
+			boolean bold = equals(versions[i],
+					details.getArtifactVersions().getOldestUpdate(UpdateScope.SUBINCREMENTAL))
+					|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.INCREMENTAL))
+					|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.INCREMENTAL))
+					|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MINOR))
+					|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MINOR))
+					|| equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MAJOR))
+					|| equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MAJOR));
+			if (bold) {
+				safeBold();
+			}
+			sink.text(versions[i].toString());
+			if (bold) {
+				safeBold_();
+				sink.nonBreakingSpace();
+				safeItalic();
+				if (equals(versions[i],
+						details.getArtifactVersions().getOldestUpdate(UpdateScope.SUBINCREMENTAL))) {
+					sink.text(getText("report.nextVersion"));
+				} else if (equals(versions[i],
+						details.getArtifactVersions().getOldestUpdate(UpdateScope.INCREMENTAL))) {
+					sink.text(getText("report.nextIncremental"));
+				} else if (equals(versions[i],
+						details.getArtifactVersions().getNewestUpdate(UpdateScope.INCREMENTAL))) {
+					sink.text(getText("report.latestIncremental"));
+				} else if (equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MINOR))) {
+					sink.text(getText("report.nextMinor"));
+				} else if (equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MINOR))) {
+					sink.text(getText("report.latestMinor"));
+				} else if (equals(versions[i], details.getArtifactVersions().getOldestUpdate(UpdateScope.MAJOR))) {
+					sink.text(getText("report.nextMajor"));
+				} else if (equals(versions[i], details.getArtifactVersions().getNewestUpdate(UpdateScope.MAJOR))) {
+					sink.text(getText("report.latestMajor"));
+				}
 
-		if (!details.getDependencyVersions().isEmpty()) {
-			sink.section3();
-			sink.sectionTitle3();
-			sink.text(MessageFormat.format(getText("report.pluginDependencies"),
-					new Object[] { ArtifactUtils.versionlessKey(plugin.getGroupId(), plugin.getArtifactId()) }));
-			sink.sectionTitle3_();
-
-			renderDependencySummaryTable(details.getDependencyVersions(), false, true, true);
-
-			sink.section3_();
-
-			for (Iterator i = details.getDependencyVersions().entrySet().iterator(); i.hasNext();) {
-				Map.Entry entry = (Map.Entry) i.next();
-				renderDependencyDetail((Dependency) entry.getKey(), (ArtifactVersions) entry.getValue());
+				safeItalic_();
 			}
 		}
-		sink.section2_();
+		sink.tableCell_();
+		sink.tableRow_();
 	}
 
 	private void renderDependencyDetail(Dependency dependency, ArtifactVersions details) {

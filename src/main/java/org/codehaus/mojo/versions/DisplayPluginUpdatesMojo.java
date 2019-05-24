@@ -158,7 +158,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 * Returns the pluginManagement section of the super-pom.
 	 *
 	 * @return Returns the pluginManagement section of the super-pom.
-	 * @throws MojoExecutionException when things go wrong.
+	 * @throws MojoExecutionException
+	 *             when things go wrong.
 	 */
 	private Map<String, String> getSuperPomPluginManagement() throws MojoExecutionException {
 		if (new DefaultArtifactVersion("3.0").compareTo(runtimeInformation.getApplicationVersion()) <= 0) {
@@ -168,7 +169,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 						.getMethod("getPluginsBoundByDefaultToAllLifecycles", new Class[] { String.class });
 				Set<Plugin> plugins = (Set<Plugin>) getPluginsBoundByDefaultToAllLifecycles.invoke(lifecycleExecutor,
 						new Object[] { getProject().getPackaging() });
-				// we need to provide a copy with the version blanked out so that inferring from
+				// we need to provide a copy with the version blanked out so
+				// that inferring from
 				// super-pom
 				// works as for 2.x as 3.x fills in the version on us!
 				Map<String, String> result = new LinkedHashMap<String, String>(plugins.size());
@@ -205,7 +207,7 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 											curState.version = pom.getElementText().trim();
 											continue;
 										}
-										
+
 										pathStack.push(curState);
 										curState = new StackState(curState.path + "/" + elementName);
 									}
@@ -214,9 +216,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 										if (curState.artifactId != null) {
 											Plugin plugin = new Plugin();
 											plugin.setArtifactId(curState.artifactId);
-											plugin.setGroupId(
-													curState.groupId == null ? PomHelper.APACHE_MAVEN_PLUGINS_GROUPID
-															: curState.groupId);
+											plugin.setGroupId(curState.groupId == null
+													? PomHelper.APACHE_MAVEN_PLUGINS_GROUPID : curState.groupId);
 											plugin.setVersion(curState.version);
 											if (!result.containsKey(plugin.getKey())) {
 												result.put(plugin.getKey(), plugin.getVersion());
@@ -252,12 +253,14 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Gets the plugin management plugins of a specific project.
 	 *
-	 * @param model the model to get the plugin management plugins from.
+	 * @param model
+	 *            the model to get the plugin management plugins from.
 	 * @return The map of effective plugin versions keyed by coordinates.
 	 * @since 1.0-alpha-1
 	 */
 	private Map<String, String> getPluginManagement(Model model) {
-		// we want only those parts of pluginManagement that are defined in this project
+		// we want only those parts of pluginManagement that are defined in this
+		// project
 		Map<String, String> pluginManagement = new HashMap<>();
 		try {
 			for (Plugin plugin : model.getBuild().getPluginManagement().getPlugins()) {
@@ -296,8 +299,10 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	// --------------------- Interface Mojo ---------------------
 
 	/**
-	 * @throws MojoExecutionException when things go wrong
-	 * @throws MojoFailureException   when things go wrong in a very bad way
+	 * @throws MojoExecutionException
+	 *             when things go wrong
+	 * @throws MojoFailureException
+	 *             when things go wrong in a very bad way
 	 * @see AbstractVersionsUpdaterMojo#execute()
 	 * @since 1.0-alpha-1
 	 */
@@ -313,14 +318,25 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		Map<String, String> superPomPluginManagement = getSuperPomPluginManagement();
 		getLog().debug("superPom plugins = " + superPomPluginManagement);
 
-		List<MavenProject> parents = getParentProjects(getProject());
-		Map<String, String> parentPlugins = getParentsPlugins(parents);
-		// TODO remove, not used any more (found while extracting getParentsPlugins
+		// TODO remove, not used any more (found while extracting
+		// getParentsPlugins
 		// method and
 		// renaming parentPluginManagement to parentPlugins)
-		// NOTICE: getProjectPlugins() takes profiles while getParentPlugins does not
-		// there is probably a little inconsistency (if plugins configured in profiles
+		// NOTICE: getProjectPlugins() takes profiles while getParentPlugins
+		// does not
+		// there is probably a little inconsistency (if plugins configured in
+		// profiles
 		// of parents)
+
+		executePlugins(pluginsWithVersionsSpecified, superPomPluginManagement);
+
+	}
+
+	private void executePlugins(Set<String> pluginsWithVersionsSpecified, Map<String, String> superPomPluginManagement)
+			throws MojoExecutionException {
+		List<MavenProject> parents = getParentProjects(getProject());
+		Map<String, String> parentPlugins = getParentsPlugins(parents);
+
 		Map<String, String> parentBuildPlugins = new HashMap<String, String>();
 		Map<String, String> parentReportPlugins = new HashMap<String, String>();
 
@@ -333,7 +349,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		ArtifactVersion specMavenVersion = new DefaultArtifactVersion(getRequiredMavenVersion(getProject(), "2.0"));
 		ArtifactVersion minMavenVersion = null;
 		boolean superPomDrivingMinVersion = false;
-		// if Maven prerequisite upgraded to a version, Map<plugin compact key, latest
+		// if Maven prerequisite upgraded to a version, Map<plugin compact key,
+		// latest
 		// compatible plugin vesion>
 		Map<ArtifactVersion, Map<String, String>> mavenUpgrades = new TreeMap<>(new MavenVersionComparator());
 
@@ -361,7 +378,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 
 			ArtifactVersion artifactVersion = null;
 			try {
-				// now we want to find the newest versions and check their Maven version
+				// now we want to find the newest versions and check their Maven
+				// version
 				// prerequisite
 				ArtifactVersions artifactVersions = getHelper().lookupArtifactVersions(artifactRange, true);
 				ArtifactVersion[] newerVersions = artifactVersions.getVersions(this.allowSnapshots);
@@ -376,18 +394,22 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 						ArtifactVersion pluginRequires = new DefaultArtifactVersion(
 								getRequiredMavenVersion(pluginMavenProject, "2.0"));
 						if (artifactVersion == null && compare(specMavenVersion, pluginRequires) >= 0) {
-							// ok, newer version compatible with current specMavenVersion
+							// ok, newer version compatible with current
+							// specMavenVersion
 							artifactVersion = newerVersions[j];
 						}
 						if (effectiveVersion == null && compare(curMavenVersion, pluginRequires) >= 0) {
-							// version was unspecified, current version of maven thinks it should use this
+							// version was unspecified, current version of maven
+							// thinks it should use this
 							effectiveVersion = newerVersions[j].toString();
 						}
 						if (artifactVersion != null && effectiveVersion != null) {
-							// no need to look at any older versions: latest compatible found
+							// no need to look at any older versions: latest
+							// compatible found
 							break;
 						}
-						// newer version not compatible with current specMavenVersion: track opportunity
+						// newer version not compatible with current
+						// specMavenVersion: track opportunity
 						// if Maven spec
 						// upgrade
 						if (minRequires == null || compare(minRequires, pluginRequires) > 0) {
@@ -400,7 +422,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 							if (!upgradePlugins.containsKey(upgradePluginKey)) {
 								String newer = newerVersions[j].toString();
 								if (newer.equals(effectiveVersion)) {
-									// plugin version configured that require a Maven version higher than spec
+									// plugin version configured that require a
+									// Maven version higher than spec
 									upgradePlugins.put(upgradePluginKey, pad(upgradePluginKey, INFO_PAD_SIZE, newer));
 								} else {
 									// plugin that can be upgraded
@@ -440,10 +463,12 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 			if (version == null && pluginsWithVersionsSpecified.contains(coords)) {
 				// Hack ALERT!
 				//
-				// All this should be re-written in a less "pom is xml" way... but it'll
+				// All this should be re-written in a less "pom is xml" way...
+				// but it'll
 				// work for now :-(
 				//
-				// we have removed the version information, as it was the same as from
+				// we have removed the version information, as it was the same
+				// as from
 				// the super-pom... but it actually was specified.
 				version = artifactVersion != null ? artifactVersion.toString() : null;
 			}
@@ -477,6 +502,13 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 			}
 		}
 
+		displayResults(pluginUpdates, pluginLockdowns, specMavenVersion, curMavenVersion, minMavenVersion,
+				superPomDrivingMinVersion, mavenUpgrades);
+	}
+
+	private void displayResults(List<String> pluginUpdates, List<String> pluginLockdowns,
+			ArtifactVersion specMavenVersion, ArtifactVersion curMavenVersion, ArtifactVersion minMavenVersion,
+			boolean superPomDrivingMinVersion, Map<ArtifactVersion, Map<String, String>> mavenUpgrades) {
 		// info on each plugin gathered: now it's time to display the result!
 		//
 		logLine(false, "");
@@ -504,6 +536,13 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		logLine(false, "");
 
 		// information on minimum Maven version
+		mavenInfo(pluginUpdates, pluginLockdowns, specMavenVersion, curMavenVersion, minMavenVersion,
+				superPomDrivingMinVersion, mavenUpgrades);
+	}
+	
+	private void mavenInfo(List<String> pluginUpdates, List<String> pluginLockdowns,
+			ArtifactVersion specMavenVersion, ArtifactVersion curMavenVersion, ArtifactVersion minMavenVersion,
+			boolean superPomDrivingMinVersion, Map<ArtifactVersion, Map<String, String>> mavenUpgrades){
 		boolean noMavenMinVersion = getRequiredMavenVersion(getProject(), null) == null;
 		boolean noExplicitMavenMinVersion = getProject().getPrerequisites() == null
 				|| getProject().getPrerequisites().getMaven() == null;
@@ -699,7 +738,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 * Returns a set of Strings which correspond to the plugin coordinates where
 	 * there is a version specified.
 	 *
-	 * @param project The project to get the plugins with versions specified.
+	 * @param project
+	 *            The project to get the plugins with versions specified.
 	 * @return a set of Strings which correspond to the plugin coordinates where
 	 *         there is a version specified.
 	 */
@@ -711,7 +751,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 * Returns a set of Strings which correspond to the plugin coordinates where
 	 * there is a version specified.
 	 *
-	 * @param pomContents The project to get the plugins with versions specified.
+	 * @param pomContents
+	 *            The project to get the plugins with versions specified.
 	 * @return a set of Strings which correspond to the plugin coordinates where
 	 *         there is a version specified.
 	 */
@@ -768,10 +809,11 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Gets the build plugins of a specific project.
 	 *
-	 * @param model                the model to get the build plugins from.
-	 * @param onlyIncludeInherited <code>true</code> to only return the plugins
-	 *                             definitions that will be inherited by child
-	 *                             projects.
+	 * @param model
+	 *            the model to get the build plugins from.
+	 * @param onlyIncludeInherited
+	 *            <code>true</code> to only return the plugins definitions that
+	 *            will be inherited by child projects.
 	 * @return The map of effective plugin versions keyed by coordinates.
 	 * @since 1.0-alpha-1
 	 */
@@ -811,7 +853,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Returns the Inherited of a {@link Plugin} or {@link ReportPlugin}
 	 *
-	 * @param plugin the {@link Plugin} or {@link ReportPlugin}
+	 * @param plugin
+	 *            the {@link Plugin} or {@link ReportPlugin}
 	 * @return the Inherited of the {@link Plugin} or {@link ReportPlugin}
 	 * @since 1.0-alpha-1
 	 */
@@ -823,9 +866,11 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Returns the lifecycle plugins of a specific project.
 	 *
-	 * @param project the project to get the lifecycle plugins from.
+	 * @param project
+	 *            the project to get the lifecycle plugins from.
 	 * @return The map of effective plugin versions keyed by coordinates.
-	 * @throws org.apache.maven.plugin.MojoExecutionException if things go wrong.
+	 * @throws org.apache.maven.plugin.MojoExecutionException
+	 *             if things go wrong.
 	 * @since 1.0-alpha-1
 	 */
 	private Map<String, Plugin> getLifecyclePlugins(MavenProject project) throws MojoExecutionException {
@@ -852,15 +897,17 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 * Gets the plugins that are bound to the defined phases. This does not find
 	 * plugins bound in the pom to a phase later than the plugin is executing.
 	 *
-	 * @param project   the project
-	 * @param thePhases the the phases
+	 * @param project
+	 *            the project
+	 * @param thePhases
+	 *            the the phases
 	 * @return the bound plugins
-	 * @throws org.apache.maven.plugin.PluginNotFoundException the plugin not found
-	 *                                                         exception
-	 * @throws LifecycleExecutionException                     the lifecycle
-	 *                                                         execution exception
-	 * @throws IllegalAccessException                          the illegal access
-	 *                                                         exception
+	 * @throws org.apache.maven.plugin.PluginNotFoundException
+	 *             the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
+	 * @throws IllegalAccessException
+	 *             the illegal access exception
 	 */
 	// pilfered this from enforcer-rules
 	// TODO coordinate with Brian Fox to remove the duplicate code
@@ -873,7 +920,8 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 						.getMethod("getPluginsBoundByDefaultToAllLifecycles", new Class[] { String.class });
 				Set<Plugin> plugins = (Set<Plugin>) getPluginsBoundByDefaultToAllLifecycles.invoke(lifecycleExecutor,
 						new Object[] { project.getPackaging() == null ? "jar" : project.getPackaging() });
-				// we need to provide a copy with the version blanked out so that inferring from
+				// we need to provide a copy with the version blanked out so
+				// that inferring from
 				// super-pom
 				// works as for 2.x as 3.x fills in the version on us!
 				Set<Plugin> result = new LinkedHashSet<Plugin>(plugins.size());
@@ -918,11 +966,15 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Gets the lifecycle for phase.
 	 *
-	 * @param lifecycles The list of lifecycles.
-	 * @param phase      the phase
+	 * @param lifecycles
+	 *            The list of lifecycles.
+	 * @param phase
+	 *            the phase
 	 * @return the lifecycle for phase
-	 * @throws BuildFailureException       the build failure exception
-	 * @throws LifecycleExecutionException the lifecycle execution exception
+	 * @throws BuildFailureException
+	 *             the build failure exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
 	 */
 	private Lifecycle getLifecycleForPhase(List<Lifecycle> lifecycles, String phase)
 			throws BuildFailureException, LifecycleExecutionException {
@@ -942,11 +994,15 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Gets the all plugins.
 	 *
-	 * @param project   the project
-	 * @param lifecycle the lifecycle
+	 * @param project
+	 *            the project
+	 * @param lifecycle
+	 *            the lifecycle
 	 * @return the all plugins
-	 * @throws PluginNotFoundException     the plugin not found exception
-	 * @throws LifecycleExecutionException the lifecycle execution exception
+	 * @throws PluginNotFoundException
+	 *             the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
 	 */
 	private Set<Plugin> getAllPlugins(MavenProject project, Lifecycle lifecycle)
 			throws PluginNotFoundException, LifecycleExecutionException
@@ -983,11 +1039,15 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Find mappings for lifecycle.
 	 *
-	 * @param project   the project
-	 * @param lifecycle the lifecycle
+	 * @param project
+	 *            the project
+	 * @param lifecycle
+	 *            the lifecycle
 	 * @return the map
-	 * @throws LifecycleExecutionException the lifecycle execution exception
-	 * @throws PluginNotFoundException     the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
+	 * @throws PluginNotFoundException
+	 *             the plugin not found exception
 	 */
 	private Map<?, ?> findMappingsForLifecycle(MavenProject project, Lifecycle lifecycle)
 			throws LifecycleExecutionException, PluginNotFoundException {
@@ -1029,11 +1089,15 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Find optional mojos for lifecycle.
 	 *
-	 * @param project   the project
-	 * @param lifecycle the lifecycle
+	 * @param project
+	 *            the project
+	 * @param lifecycle
+	 *            the lifecycle
 	 * @return the list
-	 * @throws LifecycleExecutionException the lifecycle execution exception
-	 * @throws PluginNotFoundException     the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
+	 * @throws PluginNotFoundException
+	 *             the plugin not found exception
 	 */
 	private List<String> findOptionalMojosForLifecycle(MavenProject project, Lifecycle lifecycle)
 			throws LifecycleExecutionException, PluginNotFoundException {
@@ -1067,14 +1131,21 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Find extension.
 	 *
-	 * @param project         the project
-	 * @param role            the role
-	 * @param roleHint        the role hint
-	 * @param settings        the settings
-	 * @param localRepository the local repository
+	 * @param project
+	 *            the project
+	 * @param role
+	 *            the role
+	 * @param roleHint
+	 *            the role hint
+	 * @param settings
+	 *            the settings
+	 * @param localRepository
+	 *            the local repository
 	 * @return the object
-	 * @throws LifecycleExecutionException the lifecycle execution exception
-	 * @throws PluginNotFoundException     the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
+	 * @throws PluginNotFoundException
+	 *             the plugin not found exception
 	 */
 	private Object findExtension(MavenProject project, String role, String roleHint, Settings settings,
 			ArtifactRepository localRepository) throws LifecycleExecutionException, PluginNotFoundException {
@@ -1106,12 +1177,17 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Verify plugin.
 	 *
-	 * @param plugin  the plugin
-	 * @param project the project
-	 * @param session the session
+	 * @param plugin
+	 *            the plugin
+	 * @param project
+	 *            the project
+	 * @param session
+	 *            the session
 	 * @return the plugin descriptor
-	 * @throws LifecycleExecutionException the lifecycle execution exception
-	 * @throws PluginNotFoundException     the plugin not found exception
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception
+	 * @throws PluginNotFoundException
+	 *             the plugin not found exception
 	 */
 	private PluginDescriptor loadPluginDescriptor(Plugin plugin, MavenProject project, MavenSession session)
 			throws LifecycleExecutionException, PluginNotFoundException {
@@ -1133,11 +1209,12 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	 * Returns all the parent projects of the specified project, with the root
 	 * project first.
 	 *
-	 * @param project The maven project to get the parents of
-	 * @return the parent projects of the specified project, with the root project
-	 *         first.
-	 * @throws org.apache.maven.plugin.MojoExecutionException if the super-pom could
-	 *                                                        not be created.
+	 * @param project
+	 *            The maven project to get the parents of
+	 * @return the parent projects of the specified project, with the root
+	 *         project first.
+	 * @throws org.apache.maven.plugin.MojoExecutionException
+	 *             if the super-pom could not be created.
 	 * @since 1.0-alpha-1
 	 */
 	private List<MavenProject> getParentProjects(MavenProject project) throws MojoExecutionException {
@@ -1152,16 +1229,18 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 
 	/*
 	 * NOTE: All the code following this point was scooped from the
-	 * DefaultLifecycleExecutor. There must be a better way but for now it should
-	 * work.
+	 * DefaultLifecycleExecutor. There must be a better way but for now it
+	 * should work.
 	 */
 
 	/**
 	 * Gets the phase to lifecycle map.
 	 *
-	 * @param lifecycles The list of lifecycles.
+	 * @param lifecycles
+	 *            The list of lifecycles.
 	 * @return the phase to lifecycle map.
-	 * @throws LifecycleExecutionException the lifecycle execution exception.
+	 * @throws LifecycleExecutionException
+	 *             the lifecycle execution exception.
 	 */
 	public Map<String, Lifecycle> getPhaseToLifecycleMap(List<Lifecycle> lifecycles)
 			throws LifecycleExecutionException {
@@ -1185,15 +1264,19 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Returns the set of all plugins used by the project.
 	 *
-	 * @param superPomPluginManagement     the super pom's pluginManagement plugins.
-	 * @param parentPluginManagement       the parent pom's pluginManagement
-	 *                                     plugins.
-	 * @param parentBuildPlugins           the parent pom's build plugins.
-	 * @param parentReportPlugins          the parent pom's report plugins.
-	 * @param pluginsWithVersionsSpecified the plugin coords that have a version
-	 *                                     defined in the project.
+	 * @param superPomPluginManagement
+	 *            the super pom's pluginManagement plugins.
+	 * @param parentPluginManagement
+	 *            the parent pom's pluginManagement plugins.
+	 * @param parentBuildPlugins
+	 *            the parent pom's build plugins.
+	 * @param parentReportPlugins
+	 *            the parent pom's report plugins.
+	 * @param pluginsWithVersionsSpecified
+	 *            the plugin coords that have a version defined in the project.
 	 * @return the set of plugins used by the project.
-	 * @throws org.apache.maven.plugin.MojoExecutionException if things go wrong.
+	 * @throws org.apache.maven.plugin.MojoExecutionException
+	 *             if things go wrong.
 	 */
 	private Set<Plugin> getProjectPlugins(Map<String, String> superPomPluginManagement,
 			Map<String, String> parentPluginManagement, Map<String, String> parentBuildPlugins,
@@ -1228,6 +1311,7 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		debugVersionMap("final aggregate version map", excludePluginManagement);
 
 		Model originalModel;
+
 		try {
 			originalModel = modelInterpolator.interpolate(getProject().getOriginalModel(), getProject().getBasedir(),
 					new DefaultProjectBuilderConfiguration().setExecutionProperties(getProject().getProperties()),
@@ -1235,6 +1319,51 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		} catch (ModelInterpolationException e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
+
+		checkPlugins(plugins, originalModel, excludePluginManagement, parentPluginManagement, parentBuildPlugins,
+				parentReportPlugins);
+
+		debugPluginMap("after adding reporting plugins", plugins);
+
+		for (Profile profile : originalModel.getProfiles()) {
+			addPluginsToProfile(profile, plugins, excludePluginManagement, parentPluginManagement, parentBuildPlugins,
+					parentReportPlugins);
+		}
+		Set<Plugin> result = new TreeSet<>(new PluginComparator());
+		result.addAll(plugins.values());
+		return result;
+	}
+
+	private void addPluginsToProfile(Profile profile, Map<String, Plugin> plugins,
+			Map<String, String> excludePluginManagement, Map<String, String> parentPluginManagement,
+			Map<String, String> parentBuildPlugins, Map<String, String> parentReportPlugins) {
+		try {
+			addProjectPlugins(plugins, profile.getBuild().getPluginManagement().getPlugins(), excludePluginManagement);
+		} catch (NullPointerException e) {
+			// guess there are no plugins here
+		}
+		debugPluginMap("after adding build pluginManagement for profile " + profile.getId(), plugins);
+
+		try {
+			addProjectPlugins(plugins, profile.getBuild().getPlugins(), parentBuildPlugins);
+		} catch (NullPointerException e) {
+			// guess there are no plugins here
+		}
+		debugPluginMap("after adding build plugins for profile " + profile.getId(), plugins);
+
+		try {
+			addProjectPlugins(plugins, toPlugins(profile.getReporting().getPlugins()), parentReportPlugins);
+		} catch (NullPointerException e) {
+			// guess there are no plugins here
+		}
+		debugPluginMap("after adding reporting plugins for profile " + profile.getId(), plugins);
+
+	}
+
+	private void checkPlugins(Map<String, Plugin> plugins, Model originalModel,
+			Map<String, String> excludePluginManagement, Map<String, String> parentPluginManagement,
+			Map<String, String> parentBuildPlugins, Map<String, String> parentReportPlugins)
+			throws MojoExecutionException {
 		try {
 			addProjectPlugins(plugins, originalModel.getBuild().getPluginManagement().getPlugins(),
 					excludePluginManagement);
@@ -1300,43 +1429,18 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 		} catch (NullPointerException e) {
 			// guess there are no plugins here
 		}
-		debugPluginMap("after adding reporting plugins", plugins);
-
-		for (Profile profile : originalModel.getProfiles()) {
-			try {
-				addProjectPlugins(plugins, profile.getBuild().getPluginManagement().getPlugins(),
-						excludePluginManagement);
-			} catch (NullPointerException e) {
-				// guess there are no plugins here
-			}
-			debugPluginMap("after adding build pluginManagement for profile " + profile.getId(), plugins);
-
-			try {
-				addProjectPlugins(plugins, profile.getBuild().getPlugins(), parentBuildPlugins);
-			} catch (NullPointerException e) {
-				// guess there are no plugins here
-			}
-			debugPluginMap("after adding build plugins for profile " + profile.getId(), plugins);
-
-			try {
-				addProjectPlugins(plugins, toPlugins(profile.getReporting().getPlugins()), parentReportPlugins);
-			} catch (NullPointerException e) {
-				// guess there are no plugins here
-			}
-			debugPluginMap("after adding reporting plugins for profile " + profile.getId(), plugins);
-		}
-		Set<Plugin> result = new TreeSet<>(new PluginComparator());
-		result.addAll(plugins.values());
-		return result;
 	}
 
 	/**
 	 * Adds those project plugins which are not inherited from the parent
 	 * definitions to the list of plugins.
 	 *
-	 * @param plugins           The list of plugins.
-	 * @param projectPlugins    The project's plugins.
-	 * @param parentDefinitions The parent plugin definitions.
+	 * @param plugins
+	 *            The list of plugins.
+	 * @param projectPlugins
+	 *            The project's plugins.
+	 * @param parentDefinitions
+	 *            The parent plugin definitions.
 	 * @since 1.0-alpha-1
 	 */
 	private void addProjectPlugins(Map<String, Plugin> plugins, Collection<Plugin> projectPlugins,
@@ -1366,10 +1470,12 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Logs at debug level a map of plugins keyed by versionless key.
 	 *
-	 * @param description log description
-	 * @param plugins     a map with keys being the {@link String} corresponding to
-	 *                    the versionless artifact key and values being
-	 *                    {@link Plugin} or {@link ReportPlugin}.
+	 * @param description
+	 *            log description
+	 * @param plugins
+	 *            a map with keys being the {@link String} corresponding to the
+	 *            versionless artifact key and values being {@link Plugin} or
+	 *            {@link ReportPlugin}.
 	 */
 	private void debugPluginMap(String description, Map<String, Plugin> plugins) {
 		if (getLog().isDebugEnabled()) {
@@ -1389,10 +1495,12 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Logs at debug level a map of plugin versions keyed by versionless key.
 	 *
-	 * @param description    log description
-	 * @param pluginVersions a map with keys being the {@link String} corresponding
-	 *                       to the versionless artifact key and values being
-	 *                       {@link String} plugin version.
+	 * @param description
+	 *            log description
+	 * @param pluginVersions
+	 *            a map with keys being the {@link String} corresponding to the
+	 *            versionless artifact key and values being {@link String}
+	 *            plugin version.
 	 */
 	private void debugVersionMap(String description, Map<String, String> pluginVersions) {
 		if (getLog().isDebugEnabled()) {
@@ -1426,10 +1534,11 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	/**
 	 * Gets the report plugins of a specific project.
 	 *
-	 * @param model                the model to get the report plugins from.
-	 * @param onlyIncludeInherited <code>true</code> to only return the plugins
-	 *                             definitions that will be inherited by child
-	 *                             projects.
+	 * @param model
+	 *            the model to get the report plugins from.
+	 * @param onlyIncludeInherited
+	 *            <code>true</code> to only return the plugins definitions that
+	 *            will be inherited by child projects.
 	 * @return The map of effective plugin versions keyed by coordinates.
 	 * @since 1.0-alpha-1
 	 */
@@ -1467,10 +1576,14 @@ public class DisplayPluginUpdatesMojo extends AbstractVersionsDisplayMojo {
 	}
 
 	/**
-	 * @param pom the pom to update.
-	 * @throws MojoExecutionException when things go wrong
-	 * @throws MojoFailureException   when things go wrong in a very bad way
-	 * @throws XMLStreamException     when things go wrong with XML streaming
+	 * @param pom
+	 *            the pom to update.
+	 * @throws MojoExecutionException
+	 *             when things go wrong
+	 * @throws MojoFailureException
+	 *             when things go wrong in a very bad way
+	 * @throws XMLStreamException
+	 *             when things go wrong with XML streaming
 	 * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
 	 * @since 1.0-alpha-1
 	 */
