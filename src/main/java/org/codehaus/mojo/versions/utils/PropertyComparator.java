@@ -28,20 +28,17 @@ import java.util.Comparator;
  *
  * @since 1.0-beta-1
  */
-public class PropertyComparator
-    implements Comparator<Property>
-{
-    /**
-     * Compares to {@link Property} instances.
-     *
-     * @param p1 the first object
-     * @param p2 the second object.
-     * @return the comparison result
-     * @see java.util.Comparator#compare(Object, Object)
-     * @since 1.0-beta-1
-     */
-    public int compare( Property p1, Property p2 )
-    {
-        return p1.getName().compareTo( p2.getName() );
-    }
+public class PropertyComparator implements Comparator<Property> {
+	/**
+	 * Compares to {@link Property} instances.
+	 *
+	 * @param p1 the first object
+	 * @param p2 the second object.
+	 * @return the comparison result
+	 * @see java.util.Comparator#compare(Object, Object)
+	 * @since 1.0-beta-1
+	 */
+	public int compare(Property p1, Property p2) {
+		return p1.getName().compareTo(p2.getName());
+	}
 }

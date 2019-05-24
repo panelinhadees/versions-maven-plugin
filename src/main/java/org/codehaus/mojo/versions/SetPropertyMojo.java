@@ -31,67 +31,63 @@ import javax.xml.stream.XMLStreamException;
 import java.util.Map;
 
 /**
- * Set a property to a given version without any sanity checks. Please be careful this can lead to changes which might
- * not build anymore. The sanity checks are done by other goals like <code>update-properties</code> or
- * <code>update-property</code> etc. they are not done here. So use this goal with care.
+ * Set a property to a given version without any sanity checks. Please be
+ * careful this can lead to changes which might not build anymore. The sanity
+ * checks are done by other goals like <code>update-properties</code> or
+ * <code>update-property</code> etc. they are not done here. So use this goal
+ * with care.
  *
  * @author Karl Heinz Marbaise
  * @since 2.5
  */
-@Mojo( name = "set-property", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class SetPropertyMojo
-    extends AbstractVersionsUpdaterMojo
-{
+@Mojo(name = "set-property", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class SetPropertyMojo extends AbstractVersionsUpdaterMojo {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * A property to update.
-     */
-    @Parameter( property = "property" )
-    private String property = null;
+	/**
+	 * A property to update.
+	 */
+	@Parameter(property = "property")
+	private String property = null;
 
-    /**
-     * The new version to set the property.
-     */
-    @Parameter( property = "newVersion" )
-    private String newVersion = null;
+	/**
+	 * The new version to set the property.
+	 */
+	@Parameter(property = "newVersion")
+	private String newVersion = null;
 
-    /**
-     * Whether properties linking versions should be auto-detected or not.
-     */
-    @Parameter( property = "autoLinkItems", defaultValue = "true" )
-    private boolean autoLinkItems;
+	/**
+	 * Whether properties linking versions should be auto-detected or not.
+	 */
+	@Parameter(property = "autoLinkItems", defaultValue = "true")
+	private boolean autoLinkItems;
 
-    /**
-     * @param pom the pom to update.
-     * @throws MojoExecutionException when things go wrong
-     * @throws MojoFailureException when things go wrong in a very bad way
-     * @throws XMLStreamException when things go wrong with XML streaming
-     * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        Property propertyConfig = new Property( property );
-        propertyConfig.setVersion( newVersion );
-        Map<Property, PropertyVersions> propertyVersions =
-            this.getHelper().getVersionPropertiesMap( getProject(), new Property[] { propertyConfig }, property, "",
-                                                      autoLinkItems );
-        for ( Map.Entry<Property, PropertyVersions> entry : propertyVersions.entrySet() )
-        {
-            Property property = entry.getKey();
-            PropertyVersions version = entry.getValue();
+	/**
+	 * @param pom the pom to update.
+	 * @throws MojoExecutionException when things go wrong
+	 * @throws MojoFailureException   when things go wrong in a very bad way
+	 * @throws XMLStreamException     when things go wrong with XML streaming
+	 * @see AbstractVersionsUpdaterMojo#update(ModifiedPomXMLEventReader)
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		Property propertyConfig = new Property(property);
+		propertyConfig.setVersion(newVersion);
+		Map<Property, PropertyVersions> propertyVersions = this.getHelper().getVersionPropertiesMap(getProject(),
+				new Property[] { propertyConfig }, property, "", autoLinkItems);
+		for (Map.Entry<Property, PropertyVersions> entry : propertyVersions.entrySet()) {
+			Property property = entry.getKey();
+			PropertyVersions version = entry.getValue();
 
-            final String currentVersion = getProject().getProperties().getProperty( property.getName() );
-            if ( currentVersion == null )
-            {
-                continue;
-            }
+			final String currentVersion = getProject().getProperties().getProperty(property.getName());
+			if (currentVersion == null) {
+				continue;
+			}
 
-            PomHelper.setPropertyVersion( pom, version.getProfileId(), property.getName(), newVersion );
+			PomHelper.setPropertyVersion(pom, version.getProfileId(), property.getName(), newVersion);
 
-        }
-    }
+		}
+	}
 
 }

@@ -40,70 +40,59 @@ import java.util.Iterator;
  * @author Stephen Connolly
  * @since 1.0-alpha-3
  */
-@Mojo( name = "use-next-versions", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UseNextVersionsMojo
-    extends AbstractVersionsDependencyUpdaterMojo
-{
+@Mojo(name = "use-next-versions", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UseNextVersionsMojo extends AbstractVersionsDependencyUpdaterMojo {
 
-    // ------------------------------ METHODS --------------------------
+	// ------------------------------ METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
-     * @throws org.apache.maven.plugin.MojoFailureException when things go wrong in a very bad way
-     * @throws javax.xml.stream.XMLStreamException when things go wrong with XML streaming
-     * @see org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        try
-        {
-            if ( getProject().getDependencyManagement() != null && isProcessingDependencyManagement() )
-            {
-                useNextVersions( pom, getProject().getDependencyManagement().getDependencies() );
-            }
-            if ( getProject().getDependencies() != null && isProcessingDependencies() )
-            {
-                useNextVersions( pom, getProject().getDependencies() );
-            }
-        }
-        catch ( ArtifactMetadataRetrievalException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
-    }
+	/**
+	 * @param pom the pom to update.
+	 * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
+	 * @throws org.apache.maven.plugin.MojoFailureException   when things go wrong
+	 *                                                        in a very bad way
+	 * @throws javax.xml.stream.XMLStreamException            when things go wrong
+	 *                                                        with XML streaming
+	 * @see org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		try {
+			if (getProject().getDependencyManagement() != null && isProcessingDependencyManagement()) {
+				useNextVersions(pom, getProject().getDependencyManagement().getDependencies());
+			}
+			if (getProject().getDependencies() != null && isProcessingDependencies()) {
+				useNextVersions(pom, getProject().getDependencies());
+			}
+		} catch (ArtifactMetadataRetrievalException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+	}
 
-    private void useNextVersions( ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies )
-        throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException
-    {
-        for ( Dependency dep : dependencies ) {
-            if ( isExcludeReactor() && isProducedByReactor( dep ) )
-            {
-                getLog().info( "Ignoring reactor dependency: " + toString( dep ) );
-                continue;
-            }
+	private void useNextVersions(ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies)
+			throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException {
+		for (Dependency dep : dependencies) {
+			if (isExcludeReactor() && isProducedByReactor(dep)) {
+				getLog().info("Ignoring reactor dependency: " + toString(dep));
+				continue;
+			}
 
-            String version = dep.getVersion();
-            Artifact artifact = this.toArtifact( dep );
-            if ( !isIncluded( artifact ) )
-            {
-                continue;
-            }
+			String version = dep.getVersion();
+			Artifact artifact = this.toArtifact(dep);
+			if (!isIncluded(artifact)) {
+				continue;
+			}
 
-            getLog().debug( "Looking for newer versions of " + toString( dep ) );
-            ArtifactVersions versions = getHelper().lookupArtifactVersions( artifact, false );
-            ArtifactVersion[] newer = versions.getNewerVersions( version, Boolean.TRUE.equals( allowSnapshots ) );
-            if ( newer.length > 0 )
-            {
-                String newVersion = newer[0].toString();
-                if ( PomHelper.setDependencyVersion( pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
-                                                     getProject().getModel() ) )
-                {
-                    getLog().info( "Updated " + toString( dep ) + " to version " + newVersion );
-                }
-            }
-        }
-    }
+			getLog().debug("Looking for newer versions of " + toString(dep));
+			ArtifactVersions versions = getHelper().lookupArtifactVersions(artifact, false);
+			ArtifactVersion[] newer = versions.getNewerVersions(version, Boolean.TRUE.equals(allowSnapshots));
+			if (newer.length > 0) {
+				String newVersion = newer[0].toString();
+				if (PomHelper.setDependencyVersion(pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
+						getProject().getModel())) {
+					getLog().info("Updated " + toString(dep) + " to version " + newVersion);
+				}
+			}
+		}
+	}
 
 }

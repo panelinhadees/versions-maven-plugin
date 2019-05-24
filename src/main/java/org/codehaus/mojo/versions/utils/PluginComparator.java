@@ -25,59 +25,66 @@ import org.apache.maven.model.ReportPlugin;
 import java.util.Comparator;
 
 /**
- * A comparator used to sort plugins and report plugins by group id, artifact id and finally version.
+ * A comparator used to sort plugins and report plugins by group id, artifact id
+ * and finally version.
  *
  * @since 1.0-beta-1
  */
-public class PluginComparator
-    implements Comparator<Object>
-{
+public class PluginComparator implements Comparator<Object> {
 
-    /**
-     * Compares to {@link Plugin} or {@link ReportPlugin} instances.
-     *
-     * @param o1 the first object
-     * @param o2 the second object.
-     * @return the comparison result
-     * @see java.util.Comparator#compare(Object, Object)
-     * @since 1.0-beta-1
-     */
-    public int compare( Object o1, Object o2 )
-    {
-        if ( !( o1 instanceof Plugin || o1 instanceof ReportPlugin ) )
-        {
-            throw new IllegalArgumentException( "This comparator can only be used to compare Plugin and ReportPlugin instances" );
-        }
-        if ( !( o2 instanceof Plugin || o2 instanceof ReportPlugin ) )
-        {
-            throw new IllegalArgumentException( "This comparator can only be used to compare Plugin and ReportPlugin instances" );
-        }
-        String g1 = o1 instanceof Plugin ? ( (Plugin) o1 ).getGroupId() : ( (ReportPlugin) o1 ).getGroupId();
-        String g2 = o2 instanceof Plugin ? ( (Plugin) o2 ).getGroupId() : ( (ReportPlugin) o2 ).getGroupId();
+	/**
+	 * Compares to {@link Plugin} or {@link ReportPlugin} instances.
+	 *
+	 * @param o1 the first object
+	 * @param o2 the second object.
+	 * @return the comparison result
+	 * @see java.util.Comparator#compare(Object, Object)
+	 * @since 1.0-beta-1
+	 */
+	public int compare(Object o1, Object o2) {
+		if (!(o1 instanceof Plugin || o1 instanceof ReportPlugin)
+			|| !(o2 instanceof Plugin || o2 instanceof ReportPlugin)){
+			throw new IllegalArgumentException(
+					"This comparator can only be used to compare Plugin and ReportPlugin instances");
+		}
 
-        int r = g1.compareTo( g2 );
-        if ( r == 0 )
-        {
-            String a1 = o1 instanceof Plugin ? ( (Plugin) o1 ).getArtifactId() : ( (ReportPlugin) o1 ).getArtifactId();
-            String a2 = o2 instanceof Plugin ? ( (Plugin) o2 ).getArtifactId() : ( (ReportPlugin) o2 ).getArtifactId();
-            r = a1.compareTo( a2 );
-        }
-        if ( r == 0 )
-        {
-            String v1 = o1 instanceof Plugin ? ( (Plugin) o1 ).getVersion() : ( (ReportPlugin) o1 ).getVersion();
-            String v2 = o2 instanceof Plugin ? ( (Plugin) o2 ).getVersion() : ( (ReportPlugin) o2 ).getVersion();
-            if ( v1 == null )
-            {
-                // hope I got the +1/-1 the right way around
-                return v2 == null ? 0 : -1;
-            }
-            if ( v2 == null )
-            {
-                return 1;
-            }
-            r = v1.compareTo( v2 );
-        }
-        return r;
-    }
+		int r = comparePlugins(o1, o2);
+		
+		if (r == 0) {
+			r = compareArtifactId(o1, o2);
+		}
+		if (r == 0) {
+			r = compareVersions(o1, o2);
+		}
+		return r;
+	}
+	
+	private int comparePlugins(Object o1, Object o2) {
+		String g1 = o1 instanceof Plugin ? ((Plugin) o1).getGroupId() : ((ReportPlugin) o1).getGroupId();
+		String g2 = o2 instanceof Plugin ? ((Plugin) o2).getGroupId() : ((ReportPlugin) o2).getGroupId();
+		
+		return g1.compareTo(g2);
+	}
+	
+	private int compareArtifactId(Object o1, Object o2) {
+		String a1 = o1 instanceof Plugin ? ((Plugin) o1).getArtifactId() : ((ReportPlugin) o1).getArtifactId();
+		String a2 = o2 instanceof Plugin ? ((Plugin) o2).getArtifactId() : ((ReportPlugin) o2).getArtifactId();
+
+		return a1.compareTo(a2);
+	}
+	
+	private int compareVersions(Object o1, Object o2) {
+		String v1 = o1 instanceof Plugin ? ((Plugin) o1).getVersion() : ((ReportPlugin) o1).getVersion();
+		String v2 = o2 instanceof Plugin ? ((Plugin) o2).getVersion() : ((ReportPlugin) o2).getVersion();
+		if (v1 == null) {
+			// hope I got the +1/-1 the right way around
+			return v2 == null ? 0 : -1;
+		}
+		if (v2 == null) {
+			return 1;
+		}
+		
+		return v1.compareTo(v2);
+	}
 
 }

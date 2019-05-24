@@ -20,203 +20,190 @@ package org.codehaus.mojo.versions;
  */
 
 /**
- * LinkItem represents information specified for a linked artifact version manged through a property.
+ * LinkItem represents information specified for a linked artifact version
+ * manged through a property.
  *
  * @author Stephen Connolly
  * @since 1.0-alpha-1
  */
-public class LinkItem
-{
+public class LinkItem {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Group Id of the Artifact.
-     *
-     * @parameter
-     * @required
-     * @since 1.0-alpha-1
-     */
-    private String groupId;
+	/**
+	 * Group Id of the Artifact.
+	 *
+	 * @parameter
+	 * @required
+	 * @since 1.0-alpha-1
+	 */
+	private String groupId;
 
-    /**
-     * Artifact Id of the Artifact.
-     *
-     * @parameter
-     * @required
-     * @since 1.0-alpha-1
-     */
-    private String artifactId;
+	/**
+	 * Artifact Id of the Artifact.
+	 *
+	 * @parameter
+	 * @required
+	 * @since 1.0-alpha-1
+	 */
+	private String artifactId;
 
-    /**
-     * The property that defines the version of the artifact to use.
-     *
-     * @parameter
-     * @required
-     * @since 1.0-alpha-1
-     */
-    private String property;
+	/**
+	 * The property that defines the version of the artifact to use.
+	 *
+	 * @parameter
+	 * @required
+	 * @since 1.0-alpha-1
+	 */
+	private String property;
 
-    /**
-     * Version specification to control artifact resolution.
-     *
-     * @parameter
-     * @since 1.0-alpha-1
-     */
-    private String version = null;
+	/**
+	 * Version specification to control artifact resolution.
+	 *
+	 * @parameter
+	 * @since 1.0-alpha-1
+	 */
+	private String version = null;
 
-    /**
-     * Override snapshot permisibility.
-     *
-     * @parameter
-     * @since 1.0-alpha-1
-     */
-    private Boolean allowSnapshots = null;
+	/**
+	 * Override snapshot permisibility.
+	 *
+	 * @parameter
+	 * @since 1.0-alpha-1
+	 */
+	private Boolean allowSnapshots = null;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+	// --------------------------- CONSTRUCTORS ---------------------------
 
-    /**
-     * Constructs a new LinkItem.
-     *
-     * @since 1.0-alpha-1
-     */
-    public LinkItem()
-    {
-    }
+	/**
+	 * Constructs a new LinkItem.
+	 *
+	 * @since 1.0-alpha-1
+	 */
+	public LinkItem() {
+	}
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+	// --------------------- GETTER / SETTER METHODS ---------------------
 
-    /**
-     * Getter for property 'allowSnapshots'.
-     *
-     * @return Value for property 'allowSnapshots'.
-     * @since 1.0-alpha-1
-     */
-    public Boolean getAllowSnapshots()
-    {
-        return allowSnapshots;
-    }
+	/**
+	 * Getter for property 'allowSnapshots'.
+	 *
+	 * @return Value for property 'allowSnapshots'.
+	 * @since 1.0-alpha-1
+	 */
+	public Boolean getAllowSnapshots() {
+		return allowSnapshots;
+	}
 
-    /**
-     * Setter for property 'allowSnapshots'.
-     *
-     * @param allowSnapshots Value to set for property 'allowSnapshots'.
-     * @since 1.0-alpha-1
-     */
-    public void setAllowSnapshots( Boolean allowSnapshots )
-    {
-        this.allowSnapshots = allowSnapshots;
-    }
+	/**
+	 * Setter for property 'allowSnapshots'.
+	 *
+	 * @param allowSnapshots Value to set for property 'allowSnapshots'.
+	 * @since 1.0-alpha-1
+	 */
+	public void setAllowSnapshots(Boolean allowSnapshots) {
+		this.allowSnapshots = allowSnapshots;
+	}
 
-    /**
-     * Getter for property 'artifactId'.
-     *
-     * @return Value for property 'artifactId'.
-     * @since 1.0-alpha-1
-     */
-    public String getArtifactId()
-    {
-        return artifactId;
-    }
+	/**
+	 * Getter for property 'artifactId'.
+	 *
+	 * @return Value for property 'artifactId'.
+	 * @since 1.0-alpha-1
+	 */
+	public String getArtifactId() {
+		return artifactId;
+	}
 
-    /**
-     * Setter for property 'artifactId'.
-     *
-     * @param artifactId Value to set for property 'artifactId'.
-     * @since 1.0-alpha-1
-     */
-    public void setArtifactId( String artifactId )
-    {
-        this.artifactId = artifactId;
-    }
+	/**
+	 * Setter for property 'artifactId'.
+	 *
+	 * @param artifactId Value to set for property 'artifactId'.
+	 * @since 1.0-alpha-1
+	 */
+	public void setArtifactId(String artifactId) {
+		this.artifactId = artifactId;
+	}
 
-    /**
-     * Getter for property 'groupId'.
-     *
-     * @return Value for property 'groupId'.
-     * @since 1.0-alpha-1
-     */
-    public String getGroupId()
-    {
-        return groupId;
-    }
+	/**
+	 * Getter for property 'groupId'.
+	 *
+	 * @return Value for property 'groupId'.
+	 * @since 1.0-alpha-1
+	 */
+	public String getGroupId() {
+		return groupId;
+	}
 
-    /**
-     * Setter for property 'groupId'.
-     *
-     * @param groupId Value to set for property 'groupId'.
-     * @since 1.0-alpha-1
-     */
-    public void setGroupId( String groupId )
-    {
-        this.groupId = groupId;
-    }
+	/**
+	 * Setter for property 'groupId'.
+	 *
+	 * @param groupId Value to set for property 'groupId'.
+	 * @since 1.0-alpha-1
+	 */
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
 
-    /**
-     * Getter for property 'property'.
-     *
-     * @return Value for property 'property'.
-     * @since 1.0-alpha-1
-     */
-    public String getProperty()
-    {
-        return property;
-    }
+	/**
+	 * Getter for property 'property'.
+	 *
+	 * @return Value for property 'property'.
+	 * @since 1.0-alpha-1
+	 */
+	public String getProperty() {
+		return property;
+	}
 
-    /**
-     * Setter for property 'property'.
-     *
-     * @param property Value to set for property 'property'.
-     * @since 1.0-alpha-1
-     */
-    public void setProperty( String property )
-    {
-        this.property = property;
-    }
+	/**
+	 * Setter for property 'property'.
+	 *
+	 * @param property Value to set for property 'property'.
+	 * @since 1.0-alpha-1
+	 */
+	public void setProperty(String property) {
+		this.property = property;
+	}
 
-    /**
-     * Getter for property 'version'.
-     *
-     * @return Value for property 'version'.
-     * @since 1.0-alpha-1
-     */
-    public String getVersion()
-    {
-        return version;
-    }
+	/**
+	 * Getter for property 'version'.
+	 *
+	 * @return Value for property 'version'.
+	 * @since 1.0-alpha-1
+	 */
+	public String getVersion() {
+		return version;
+	}
 
-    /**
-     * Setter for property 'version'.
-     *
-     * @param version Value to set for property 'version'.
-     * @since 1.0-alpha-1
-     */
-    public void setVersion( String version )
-    {
-        this.version = version;
-    }
+	/**
+	 * Setter for property 'version'.
+	 *
+	 * @param version Value to set for property 'version'.
+	 * @since 1.0-alpha-1
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
 
-    // ------------------------ CANONICAL METHODS ------------------------
+	// ------------------------ CANONICAL METHODS ------------------------
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 1.0-alpha-1
-     */
-    public String toString()
-    {
-        StringBuilder buf = new StringBuilder( "${" );
-        buf.append( property );
-        buf.append( "} = " );
-        buf.append( groupId );
-        buf.append( ':' );
-        buf.append( artifactId );
-        if ( version != null )
-        {
-            buf.append( ':' );
-            buf.append( version );
-        }
-        return buf.toString();
-    }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @since 1.0-alpha-1
+	 */
+	public String toString() {
+		StringBuilder buf = new StringBuilder("${");
+		buf.append(property);
+		buf.append("} = ");
+		buf.append(groupId);
+		buf.append(':');
+		buf.append(artifactId);
+		if (version != null) {
+			buf.append(':');
+			buf.append(version);
+		}
+		return buf.toString();
+	}
 
 }

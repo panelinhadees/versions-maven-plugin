@@ -48,134 +48,117 @@ import org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader;
  * @author Stephen Connolly
  * @since 1.0-alpha-3
  */
-@Mojo( name = "use-latest-versions", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UseLatestVersionsMojo
-    extends AbstractVersionsDependencyUpdaterMojo
-{
-    /**
-     * Whether to allow the major version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowMajorUpdates", defaultValue = "true" )
-    private boolean allowMajorUpdates;
+@Mojo(name = "use-latest-versions", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UseLatestVersionsMojo extends AbstractVersionsDependencyUpdaterMojo {
+	/**
+	 * Whether to allow the major version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowMajorUpdates", defaultValue = "true")
+	private boolean allowMajorUpdates;
 
-    /**
-     * Whether to allow the minor version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowMinorUpdates", defaultValue = "true" )
-    private boolean allowMinorUpdates;
+	/**
+	 * Whether to allow the minor version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowMinorUpdates", defaultValue = "true")
+	private boolean allowMinorUpdates;
 
-    /**
-     * Whether to allow the incremental version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowIncrementalUpdates", defaultValue = "true" )
-    private boolean allowIncrementalUpdates;
+	/**
+	 * Whether to allow the incremental version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowIncrementalUpdates", defaultValue = "true")
+	private boolean allowIncrementalUpdates;
 
-    // ------------------------------ METHODS --------------------------
+	// ------------------------------ METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
-     * @throws org.apache.maven.plugin.MojoFailureException when things go wrong in a very bad way
-     * @throws javax.xml.stream.XMLStreamException when things go wrong with XML streaming
-     * @see AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        try
-        {
-            if ( getProject().getDependencyManagement() != null && isProcessingDependencyManagement() )
-            {
-                DependencyManagement dependencyManagement =
-                    PomHelper.getRawModel( getProject() ).getDependencyManagement();
-                if ( dependencyManagement != null )
-                {
-                    useLatestVersions( pom, dependencyManagement.getDependencies() );
-                }
-            }
-            if ( getProject().getDependencies() != null && isProcessingDependencies() )
-            {
-                useLatestVersions( pom, getProject().getDependencies() );
-            }
-            if ( getProject().getParent() != null && isProcessingParent() )
-            {
-                Dependency dependency = new Dependency();
-                dependency.setArtifactId(getProject().getParent().getArtifactId());
-                dependency.setGroupId(getProject().getParent().getGroupId());
-                dependency.setVersion(getProject().getParent().getVersion());
-                dependency.setType("pom");
-                List list = new ArrayList();
-                list.add(dependency);
-                useLatestVersions( pom, list);
-            }
-        }
-        catch ( ArtifactMetadataRetrievalException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
-    }
+	/**
+	 * @param pom the pom to update.
+	 * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
+	 * @throws org.apache.maven.plugin.MojoFailureException   when things go wrong
+	 *                                                        in a very bad way
+	 * @throws javax.xml.stream.XMLStreamException            when things go wrong
+	 *                                                        with XML streaming
+	 * @see AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		try {
+			if (getProject().getDependencyManagement() != null && isProcessingDependencyManagement()) {
+				DependencyManagement dependencyManagement = PomHelper.getRawModel(getProject())
+						.getDependencyManagement();
+				if (dependencyManagement != null) {
+					useLatestVersions(pom, dependencyManagement.getDependencies());
+				}
+			}
+			if (getProject().getDependencies() != null && isProcessingDependencies()) {
+				useLatestVersions(pom, getProject().getDependencies());
+			}
+			if (getProject().getParent() != null && isProcessingParent()) {
+				Dependency dependency = new Dependency();
+				dependency.setArtifactId(getProject().getParent().getArtifactId());
+				dependency.setGroupId(getProject().getParent().getGroupId());
+				dependency.setVersion(getProject().getParent().getVersion());
+				dependency.setType("pom");
+				List list = new ArrayList();
+				list.add(dependency);
+				useLatestVersions(pom, list);
+			}
+		} catch (ArtifactMetadataRetrievalException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		} catch (IOException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+	}
 
-    private void useLatestVersions( ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies )
-        throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException
-    {
-        int segment = determineUnchangedSegment( allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates );
-        MajorMinorIncrementalFilter majorMinorIncfilter =
-            new MajorMinorIncrementalFilter( allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates );
+	private void useLatestVersions(ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies)
+			throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException {
+		int segment = determineUnchangedSegment(allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates);
+		MajorMinorIncrementalFilter majorMinorIncfilter = new MajorMinorIncrementalFilter(allowMajorUpdates,
+				allowMinorUpdates, allowIncrementalUpdates);
 
-        for ( Dependency dep : dependencies )
-        {
-            if ( isExcludeReactor() && isProducedByReactor( dep ) )
-            {
-                getLog().info( "Ignoring reactor dependency: " + toString( dep ) );
-                continue;
-            }
+		for (Dependency dep : dependencies) {
+			if (isExcludeReactor() && isProducedByReactor(dep)) {
+				getLog().info("Ignoring reactor dependency: " + toString(dep));
+				continue;
+			}
 
-            String version = dep.getVersion();
-            Artifact artifact = this.toArtifact( dep );
-            if ( !isIncluded( artifact ) )
-            {
-                continue;
-            }
+			String version = dep.getVersion();
+			Artifact artifact = this.toArtifact(dep);
+			if (!isIncluded(artifact)) {
+				continue;
+			}
 
-            ArtifactVersion selectedVersion = new DefaultArtifactVersion( version );
-            getLog().debug( "Selected version:" + selectedVersion.toString() );
+			ArtifactVersion selectedVersion = new DefaultArtifactVersion(version);
+			getLog().debug("Selected version:" + selectedVersion.toString());
 
-            getLog().debug( "Looking for newer versions of " + toString( dep ) );
-            ArtifactVersions versions = getHelper().lookupArtifactVersions( artifact, false );
+			getLog().debug("Looking for newer versions of " + toString(dep));
+			ArtifactVersions versions = getHelper().lookupArtifactVersions(artifact, false);
 
-            ArtifactVersion[] newerVersions = versions.getNewerVersions( version, segment, allowSnapshots );
+			ArtifactVersion[] newerVersions = versions.getNewerVersions(version, segment, allowSnapshots);
 
-            ArtifactVersion[] filteredVersions = majorMinorIncfilter.filter( selectedVersion, newerVersions );
-            if ( filteredVersions.length > 0 )
-            {
-                String newVersion = filteredVersions[filteredVersions.length - 1].toString();
-                if ( getProject().getParent() != null )
-                {
-                    if ( artifact.getId().equals( getProject().getParentArtifact().getId() ) && isProcessingParent() )
-                    {
-                        if ( PomHelper.setProjectParentVersion( pom, newVersion ) ) {
-                            getLog().debug("Made parent update from " + version + " to " + newVersion);
-                        }
-                    }
-                }
-                if ( PomHelper.setDependencyVersion( pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
-                                                     getProject().getModel() ) ) {
-                    getLog().info( "Updated " + toString( dep ) + " to version " + newVersion );
+			ArtifactVersion[] filteredVersions = majorMinorIncfilter.filter(selectedVersion, newerVersions);
+			if (filteredVersions.length > 0) {
+				String newVersion = filteredVersions[filteredVersions.length - 1].toString();
+				if (getProject().getParent() != null) {
+					if (artifact.getId().equals(getProject().getParentArtifact().getId()) && isProcessingParent()) {
+						if (PomHelper.setProjectParentVersion(pom, newVersion)) {
+							getLog().debug("Made parent update from " + version + " to " + newVersion);
+						}
+					}
+				}
+				if (PomHelper.setDependencyVersion(pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
+						getProject().getModel())) {
+					getLog().info("Updated " + toString(dep) + " to version " + newVersion);
 
-                }
-            }
+				}
+			}
 
-        }
-    }
+		}
+	}
 
 }

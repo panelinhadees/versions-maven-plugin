@@ -50,155 +50,134 @@ import java.util.regex.Pattern;
  * @author Stephen Connolly
  * @since 1.0-alpha-3
  */
-@Mojo( name = "use-latest-releases", requiresProject = true, requiresDirectInvocation = true, threadSafe = true )
-public class UseLatestReleasesMojo
-    extends AbstractVersionsDependencyUpdaterMojo
-{
+@Mojo(name = "use-latest-releases", requiresProject = true, requiresDirectInvocation = true, threadSafe = true)
+public class UseLatestReleasesMojo extends AbstractVersionsDependencyUpdaterMojo {
 
-    // ------------------------------ FIELDS ------------------------------
+	// ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Pattern to match a snapshot version.
-     */
-    public final Pattern matchSnapshotRegex = Pattern.compile( "^(.+)-((SNAPSHOT)|(\\d{8}\\.\\d{6}-\\d+))$" );
+	/**
+	 * Pattern to match a snapshot version.
+	 */
+	public final Pattern matchSnapshotRegex = Pattern.compile("^(.+)-((SNAPSHOT)|(\\d{8}\\.\\d{6}-\\d+))$");
 
-    /**
-     * Whether to allow the major version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowMajorUpdates", defaultValue = "true" )
-    protected boolean allowMajorUpdates;
+	/**
+	 * Whether to allow the major version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowMajorUpdates", defaultValue = "true")
+	protected boolean allowMajorUpdates;
 
-    /**
-     * Whether to allow the minor version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowMinorUpdates", defaultValue = "true" )
-    protected boolean allowMinorUpdates;
+	/**
+	 * Whether to allow the minor version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowMinorUpdates", defaultValue = "true")
+	protected boolean allowMinorUpdates;
 
-    /**
-     * Whether to allow the incremental version number to be changed.
-     *
-     * @since 1.2
-     */
-    @Parameter( property = "allowIncrementalUpdates", defaultValue = "true" )
-    protected boolean allowIncrementalUpdates;
+	/**
+	 * Whether to allow the incremental version number to be changed.
+	 *
+	 * @since 1.2
+	 */
+	@Parameter(property = "allowIncrementalUpdates", defaultValue = "true")
+	protected boolean allowIncrementalUpdates;
 
-    // ------------------------------ METHODS --------------------------
+	// ------------------------------ METHODS --------------------------
 
-    /**
-     * @param pom the pom to update.
-     * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
-     * @throws org.apache.maven.plugin.MojoFailureException when things go wrong in a very bad way
-     * @throws javax.xml.stream.XMLStreamException when things go wrong with XML streaming
-     * @see org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
-     */
-    protected void update( ModifiedPomXMLEventReader pom )
-        throws MojoExecutionException, MojoFailureException, XMLStreamException
-    {
-        try
-        {
-            if ( getProject().getDependencyManagement() != null && isProcessingDependencyManagement() )
-            {
-                useLatestReleases( pom, getProject().getDependencyManagement().getDependencies() );
-            }
-            if ( getProject().getDependencies() != null && isProcessingDependencies() )
-            {
-                useLatestReleases( pom, getProject().getDependencies() );
-            }
-            if ( getProject().getParent() != null && isProcessingParent() )
-            {
-                Dependency dependency = new Dependency();
-                dependency.setArtifactId(getProject().getParent().getArtifactId());
-                dependency.setGroupId(getProject().getParent().getGroupId());
-                dependency.setVersion(getProject().getParent().getVersion());
-                dependency.setType("pom");
-                List list = new ArrayList();
-                list.add(dependency);
-                useLatestReleases( pom, list);
-            }
-        }
-        catch ( ArtifactMetadataRetrievalException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
-    }
+	/**
+	 * @param pom the pom to update.
+	 * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong
+	 * @throws org.apache.maven.plugin.MojoFailureException   when things go wrong
+	 *                                                        in a very bad way
+	 * @throws javax.xml.stream.XMLStreamException            when things go wrong
+	 *                                                        with XML streaming
+	 * @see org.codehaus.mojo.versions.AbstractVersionsUpdaterMojo#update(org.codehaus.mojo.versions.rewriting.ModifiedPomXMLEventReader)
+	 */
+	protected void update(ModifiedPomXMLEventReader pom)
+			throws MojoExecutionException, MojoFailureException, XMLStreamException {
+		try {
+			if (getProject().getDependencyManagement() != null && isProcessingDependencyManagement()) {
+				useLatestReleases(pom, getProject().getDependencyManagement().getDependencies());
+			}
+			if (getProject().getDependencies() != null && isProcessingDependencies()) {
+				useLatestReleases(pom, getProject().getDependencies());
+			}
+			if (getProject().getParent() != null && isProcessingParent()) {
+				Dependency dependency = new Dependency();
+				dependency.setArtifactId(getProject().getParent().getArtifactId());
+				dependency.setGroupId(getProject().getParent().getGroupId());
+				dependency.setVersion(getProject().getParent().getVersion());
+				dependency.setType("pom");
+				List list = new ArrayList();
+				list.add(dependency);
+				useLatestReleases(pom, list);
+			}
+		} catch (ArtifactMetadataRetrievalException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+	}
 
-    private void useLatestReleases( ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies )
-        throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException
-    {
-        int segment = determineUnchangedSegment( allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates );
-        MajorMinorIncrementalFilter majorMinorIncfilter =
-            new MajorMinorIncrementalFilter( allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates );
+	private void useLatestReleases(ModifiedPomXMLEventReader pom, Collection<Dependency> dependencies)
+			throws XMLStreamException, MojoExecutionException, ArtifactMetadataRetrievalException {
+		int segment = determineUnchangedSegment(allowMajorUpdates, allowMinorUpdates, allowIncrementalUpdates);
+		MajorMinorIncrementalFilter majorMinorIncfilter = new MajorMinorIncrementalFilter(allowMajorUpdates,
+				allowMinorUpdates, allowIncrementalUpdates);
 
-        for ( Dependency dep : dependencies )
-        {
-            if ( isExcludeReactor() && isProducedByReactor( dep ) )
-            {
-                getLog().info( "Ignoring reactor dependency: " + toString( dep ) );
-                continue;
-            }
+		for (Dependency dep : dependencies) {
+			if (isExcludeReactor() && isProducedByReactor(dep)) {
+				getLog().info("Ignoring reactor dependency: " + toString(dep));
+				continue;
+			}
 
-            String version = dep.getVersion();
-            Matcher versionMatcher = matchSnapshotRegex.matcher( version );
-            if ( !versionMatcher.matches() )
-            {
-                Artifact artifact = this.toArtifact( dep );
-                if ( !isIncluded( artifact ) )
-                {
-                    continue;
-                }
+			String version = dep.getVersion();
+			Matcher versionMatcher = matchSnapshotRegex.matcher(version);
+			if (!versionMatcher.matches()) {
+				Artifact artifact = this.toArtifact(dep);
+				if (!isIncluded(artifact)) {
+					continue;
+				}
 
-                ArtifactVersion selectedVersion = new DefaultArtifactVersion( version );
-                getLog().debug( "Selected version:" + selectedVersion.toString() );
+				ArtifactVersion selectedVersion = new DefaultArtifactVersion(version);
+				getLog().debug("Selected version:" + selectedVersion.toString());
 
-                getLog().debug( "Looking for newer versions of " + toString( dep ) );
-                ArtifactVersions versions = getHelper().lookupArtifactVersions( artifact, false );
-                ArtifactVersion[] newer = versions.getNewerVersions( version, segment, false );
-                newer = filterVersionsWithIncludes( newer, artifact );
+				getLog().debug("Looking for newer versions of " + toString(dep));
+				ArtifactVersions versions = getHelper().lookupArtifactVersions(artifact, false);
+				ArtifactVersion[] newer = versions.getNewerVersions(version, segment, false);
+				newer = filterVersionsWithIncludes(newer, artifact);
 
-                ArtifactVersion[] filteredVersions = majorMinorIncfilter.filter( selectedVersion, newer );
-                if ( filteredVersions.length > 0 )
-                {
-                    String newVersion = filteredVersions[filteredVersions.length - 1].toString();
-                    if ( getProject().getParent() != null )
-                    {
-                        if ( artifact.getId().equals( getProject().getParentArtifact().getId() ) && isProcessingParent() )
-                        {
-                            if ( PomHelper.setProjectParentVersion( pom, newVersion.toString() ) )
-                            {
-                                getLog().debug( "Made parent update from " + version + " to " + newVersion.toString() );
-                            }
-                        }
-                    }
-                    if ( PomHelper.setDependencyVersion( pom, dep.getGroupId(), dep.getArtifactId(), version,
-                                                         newVersion, getProject().getModel() ) )
-                    {
-                        getLog().info( "Updated " + toString( dep ) + " to version " + newVersion );
-                    }
-                }
-            }
-        }
-    }
+				ArtifactVersion[] filteredVersions = majorMinorIncfilter.filter(selectedVersion, newer);
+				if (filteredVersions.length > 0) {
+					String newVersion = filteredVersions[filteredVersions.length - 1].toString();
+					if (getProject().getParent() != null) {
+						if (artifact.getId().equals(getProject().getParentArtifact().getId()) && isProcessingParent()) {
+							if (PomHelper.setProjectParentVersion(pom, newVersion.toString())) {
+								getLog().debug("Made parent update from " + version + " to " + newVersion.toString());
+							}
+						}
+					}
+					if (PomHelper.setDependencyVersion(pom, dep.getGroupId(), dep.getArtifactId(), version, newVersion,
+							getProject().getModel())) {
+						getLog().info("Updated " + toString(dep) + " to version " + newVersion);
+					}
+				}
+			}
+		}
+	}
 
-    private ArtifactVersion[] filterVersionsWithIncludes( ArtifactVersion[] newer, Artifact artifact )
-    {
-        List<ArtifactVersion> filteredNewer = new ArrayList<>( newer.length );
-        for ( int j = 0; j < newer.length; j++ )
-        {
-            ArtifactVersion artifactVersion = newer[j];
-            Artifact artefactWithNewVersion =
-                new DefaultArtifact( artifact.getGroupId(), artifact.getArtifactId(),
-                                     VersionRange.createFromVersion( artifactVersion.toString() ), artifact.getScope(),
-                                     artifact.getType(), null, new DefaultArtifactHandler(), false );
-            if ( isIncluded( artefactWithNewVersion ) )
-            {
-                filteredNewer.add( artifactVersion );
-            }
-        }
-        return filteredNewer.toArray( new ArtifactVersion[filteredNewer.size()] );
-    }
+	private ArtifactVersion[] filterVersionsWithIncludes(ArtifactVersion[] newer, Artifact artifact) {
+		List<ArtifactVersion> filteredNewer = new ArrayList<>(newer.length);
+		for (int j = 0; j < newer.length; j++) {
+			ArtifactVersion artifactVersion = newer[j];
+			Artifact artefactWithNewVersion = new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(),
+					VersionRange.createFromVersion(artifactVersion.toString()), artifact.getScope(), artifact.getType(),
+					null, new DefaultArtifactHandler(), false);
+			if (isIncluded(artefactWithNewVersion)) {
+				filteredNewer.add(artifactVersion);
+			}
+		}
+		return filteredNewer.toArray(new ArtifactVersion[filteredNewer.size()]);
+	}
 
 }
