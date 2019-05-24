@@ -146,108 +146,141 @@ public class NumericVersionComparator extends AbstractVersionComparator {
 		boolean first = true;
 		int seg = segment;
 		while (seg >= 0 && tok.hasMoreTokens()) {
-			if (first) {
-				first = false;
-			} else {
-				buf.append('.');
+			first = bufAppend3(buf, first);
+			String[] pq = {tok.nextToken(), null};
+			if (pq[0].indexOf('-') >= 0) {
+				int index = pq[0].indexOf('-');
+				pq[1] = pq[0].substring(index + 1);
+				pq[0] = pq[0].substring(0, index);
 			}
-			String p = tok.nextToken();
-			String q = null;
-			if (p.indexOf('-') >= 0) {
-				int index = p.indexOf('-');
-				q = p.substring(index + 1);
-				p = p.substring(0, index);
-			}
-
 			if (seg == 0) {
-				try {
-					BigInteger n = new BigInteger(p);
-					p = n.add(BIG_INTEGER_ONE).toString();
-					q = null;
-				} catch (NumberFormatException e) {
-					// ok, let's try some common tricks
-					if ("alpha".equalsIgnoreCase(p)) {
-						if (q == null) {
-							p = "beta";
-						} else {
-							try {
-								BigInteger n = new BigInteger(q);
-								q = n.add(BIG_INTEGER_ONE).toString();
-							} catch (NumberFormatException e1) {
-								p = "beta";
-								q = null;
-							}
-						}
-					} else if ("beta".equalsIgnoreCase(p)) {
-						if (q == null) {
-							p = "milestone";
-						} else {
-							try {
-								BigInteger n = new BigInteger(q);
-								q = n.add(BIG_INTEGER_ONE).toString();
-							} catch (NumberFormatException e1) {
-								p = "milestone";
-								q = null;
-							}
-						}
-					} else if ("milestone".equalsIgnoreCase(p)) {
-						if (q == null) {
-							p = "rc";
-						} else {
-							try {
-								BigInteger n = new BigInteger(q);
-								q = n.add(BIG_INTEGER_ONE).toString();
-							} catch (NumberFormatException e1) {
-								p = "rc";
-								q = null;
-							}
-						}
-					} else if ("cr".equalsIgnoreCase(p) || "rc".equalsIgnoreCase(p)) {
-						if (q == null) {
-							p = "ga";
-						} else {
-							try {
-								BigInteger n = new BigInteger(q);
-								q = n.add(BIG_INTEGER_ONE).toString();
-							} catch (NumberFormatException e1) {
-								p = "ga";
-								q = null;
-							}
-						}
-					} else if ("ga".equalsIgnoreCase(p) || "final".equalsIgnoreCase(p)) {
-						if (q == null) {
-							p = "sp";
-							q = "1";
-						} else {
-							try {
-								BigInteger n = new BigInteger(q);
-								q = n.add(BIG_INTEGER_ONE).toString();
-							} catch (NumberFormatException e1) {
-								p = "sp";
-								q = "1";
-							}
-						}
-					} else {
-						p = VersionComparators.alphaNumIncrement(p);
-					}
-				}
+				tryCatch(pq);
 			}
-			buf.append(p);
-			if (q != null) {
-				buf.append('-');
-				buf.append(q);
-			}
-			seg--;
+			seg = bufAppend1(buf, seg, pq[0], pq[1]);
 		}
-		while (tok.hasMoreTokens()) {
-			if (first) {
-				first = false;
+		first = bufAppend2(buf, tok, first);
+		return new DefaultArtifactVersion(buf.toString());
+	}
+
+	private void tryCatch(String[] pq) {
+		try {
+			BigInteger n = new BigInteger(pq[0]);
+			pq[0] = n.add(BIG_INTEGER_ONE).toString();
+			pq[1] = null;
+		} catch (NumberFormatException e) {
+			// ok, let's try some common tricks
+			if ("alpha".equalsIgnoreCase(pq[0])) {
+				case1(pq);
+			} else if ("beta".equalsIgnoreCase(pq[0])) {
+				case2(pq);
+			} else if ("milestone".equalsIgnoreCase(pq[0])) {
+				case3(pq);
+			} else if ("cr".equalsIgnoreCase(pq[0]) || "rc".equalsIgnoreCase(pq[0])) {
+				case4(pq);
+			} else if ("ga".equalsIgnoreCase(pq[0]) || "final".equalsIgnoreCase(pq[0])) {
+				case5(pq);
 			} else {
-				buf.append('.');
+				pq[0] = VersionComparators.alphaNumIncrement(pq[0]);
 			}
+		}
+	}
+
+	private void case5(String[] pq) {
+		if (pq[1] == null) {
+			pq[0] = "sp";
+			pq[1] = "1";
+		} else {
+			try {
+				BigInteger n = new BigInteger(pq[1]);
+				pq[1] = n.add(BIG_INTEGER_ONE).toString();
+			} catch (NumberFormatException e1) {
+				pq[0] = "sp";
+				pq[1] = "1";
+			}
+		}
+	}
+
+	private void case4(String[] pq) {
+		if (pq[1] == null) {
+			pq[0] = "ga";
+		} else {
+			try {
+				BigInteger n = new BigInteger(pq[1]);
+				pq[1] = n.add(BIG_INTEGER_ONE).toString();
+			} catch (NumberFormatException e1) {
+				pq[0] = "ga";
+				pq[1] = null;
+			}
+		}
+	}
+
+	private void case3(String[] pq) {
+		if (pq[1] == null) {
+			pq[0] = "rc";
+		} else {
+			try {
+				BigInteger n = new BigInteger(pq[1]);
+				pq[1] = n.add(BIG_INTEGER_ONE).toString();
+			} catch (NumberFormatException e1) {
+				pq[0] = "rc";
+				pq[1] = null;
+			}
+		}
+	}
+
+	private void case2(String[] pq) {
+		if (pq[1] == null) {
+			pq[0] = "milestone";
+		} else {
+			try {
+				BigInteger n = new BigInteger(pq[1]);
+				pq[1] = n.add(BIG_INTEGER_ONE).toString();
+			} catch (NumberFormatException e1) {
+				pq[0] = "milestone";
+				pq[1] = null;
+			}
+		}
+	}
+
+	private void case1(String[] pq) {
+		if (pq[1] == null) {
+			pq[0] = "beta";
+		} else {
+			try {
+				BigInteger n = new BigInteger(pq[1]);
+				pq[1] = n.add(BIG_INTEGER_ONE).toString();
+			} catch (NumberFormatException e1) {
+				pq[0] = "beta";
+				pq[1] = null;
+			}
+		}
+	}
+
+	private boolean bufAppend3(StringBuilder buf, boolean first) {
+		if (first) {
+			first = false;
+		} else {
+			buf.append('.');
+		}
+		return first;
+	}
+
+	private int bufAppend1(StringBuilder buf, int seg, String p, String q) {
+		buf.append(p);
+		if (q != null) {
+			buf.append('-');
+			buf.append(q);
+		}
+		seg--;
+		return seg;
+	}
+
+	private boolean bufAppend2(StringBuilder buf, StringTokenizer tok, boolean first) {
+		while (tok.hasMoreTokens()) {
+			first = bufAppend3(buf, first);
 			tok.nextToken();
 			buf.append("0");
 		}
-		return new DefaultArtifactVersion(buf.toString());
+		return first;
 	}
 }
