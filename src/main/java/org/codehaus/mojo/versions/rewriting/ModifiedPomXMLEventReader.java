@@ -308,28 +308,32 @@ public class ModifiedPomXMLEventReader implements XMLEventReader {
 			return false;
 		}
 		try {
-			next = backing.nextEvent();
-			nextStart = nextEnd;
-			if (backing.hasNext()) {
-				nextEnd = backing.peek().getLocation().getCharacterOffset();
-			}
-
-			if (nextEnd != -1) {
-				if (!next.isCharacters()) {
-					while (nextStart < nextEnd && nextStart < pom.length()
-							&& (c(nextStart) == '\n' || c(nextStart) == '\r')) {
-						nextStart++;
-					}
-				} else {
-					while (nextEndIncludesNextEvent() || nextEndIncludesNextEndElement()) {
-						nextEnd--;
-					}
-				}
-			}
-			return nextStart < pom.length();
+			return checkNext();
 		} catch (XMLStreamException e) {
 			return false;
 		}
+	}
+	
+	private boolean checkNext() throws XMLStreamException {
+		next = backing.nextEvent();
+		nextStart = nextEnd;
+		if (backing.hasNext()) {
+			nextEnd = backing.peek().getLocation().getCharacterOffset();
+		}
+
+		if (nextEnd != -1) {
+			if (!next.isCharacters()) {
+				while (nextStart < nextEnd && nextStart < pom.length()
+						&& (c(nextStart) == '\n' || c(nextStart) == '\r')) {
+					nextStart++;
+				}
+			} else {
+				while (nextEndIncludesNextEvent() || nextEndIncludesNextEndElement()) {
+					nextEnd--;
+				}
+			}
+		}
+		return nextStart < pom.length();
 	}
 
 	/**
@@ -455,6 +459,12 @@ public class ModifiedPomXMLEventReader implements XMLEventReader {
 		int delta = replacement.length() - (end - start);
 		nextDelta += delta;
 
+		updateMarks(index1, index2, delta);
+
+		modified = true;
+	}
+	
+	private void updateMarks(int index1, int index2, int delta) {
 		for (int i = 0; i < MAX_MARKS; i++) {
 			if (i == index1 || i == index2 || markStart[i] == -1) {
 				continue;
@@ -467,8 +477,6 @@ public class ModifiedPomXMLEventReader implements XMLEventReader {
 				markStart[i] = -1;
 			}
 		}
-
-		modified = true;
 	}
 
 	/**
@@ -494,6 +502,14 @@ public class ModifiedPomXMLEventReader implements XMLEventReader {
 		} else if (lastStart > markStart[index]) {
 			lastDelta += delta;
 		}
+		
+		updateMark(index, delta);
+		
+		markEnd[index] += delta;
+		modified = true;
+	}
+	
+	private void updateMark(int index, int delta){
 		for (int i = 0; i < MAX_MARKS; i++) {
 			if (i == index || markStart[i] == -1) {
 				continue;
@@ -504,8 +520,6 @@ public class ModifiedPomXMLEventReader implements XMLEventReader {
 				markDelta[i] += delta;
 			}
 		}
-		markEnd[index] += delta;
-		modified = true;
 	}
 
 	public Model parse() throws IOException, XmlPullParserException {

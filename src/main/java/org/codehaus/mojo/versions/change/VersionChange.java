@@ -67,20 +67,25 @@ public final class VersionChange {
 
 		VersionChange versionChange = (VersionChange) o;
 
+		return compareAttributes(versionChange);
+	}
+	
+	private boolean compareAttributes(VersionChange versionChange) {
+		boolean toReturn = true;
+		
 		if (artifactId != null ? !artifactId.equals(versionChange.artifactId) : versionChange.artifactId != null) {
-			return false;
+			toReturn = false;
 		}
-		if (groupId != null ? !groupId.equals(versionChange.groupId) : versionChange.groupId != null) {
-			return false;
+		else if (groupId != null ? !groupId.equals(versionChange.groupId) : versionChange.groupId != null) {
+			toReturn = false;
 		}
-		if (newVersion != null ? !newVersion.equals(versionChange.newVersion) : versionChange.newVersion != null) {
-			return false;
+		else if (newVersion != null ? !newVersion.equals(versionChange.newVersion) : versionChange.newVersion != null) {
+			toReturn = false;
 		}
-		if (oldVersion != null ? !oldVersion.equals(versionChange.oldVersion) : versionChange.oldVersion != null) {
-			return false;
+		else if (oldVersion != null ? !oldVersion.equals(versionChange.oldVersion) : versionChange.oldVersion != null) {
+			toReturn = false;
 		}
-
-		return true;
+		return toReturn;
 	}
 
 	public int hashCode() {

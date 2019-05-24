@@ -208,54 +208,77 @@ public class SetMojo extends AbstractVersionsUpdaterMojo {
 		}
 
 		if (removeSnapshot && !nextSnapshot) {
-			String version = getVersion();
-			if (version.endsWith(SNAPSHOT)) {
-				String release = version.substring(0, version.indexOf(SNAPSHOT));
-				newVersion = release;
-				getLog().info("SNAPSHOT found.  BEFORE " + version + "  --> AFTER: " + newVersion);
-			}
+			setCurrentSnapshot();
 		}
 
 		if (!removeSnapshot && nextSnapshot) {
-			String version = getVersion();
-			String versionWithoutSnapshot = version;
-			if (version.endsWith(SNAPSHOT)) {
-				versionWithoutSnapshot = version.substring(0, version.indexOf(SNAPSHOT));
-			}
-			LinkedList<String> numbers = new LinkedList<String>();
-			if (versionWithoutSnapshot.contains(".")) {
-				// Chop the version into numbers by splitting on the dot (.)
-				Collections.addAll(numbers, versionWithoutSnapshot.split("\\."));
-			} else {
-				// The version contains no dots, assume that it is only 1 number
-				numbers.add(versionWithoutSnapshot);
-			}
-
-			int lastNumber = Integer.parseInt(numbers.removeLast());
-			numbers.addLast(String.valueOf(lastNumber + 1));
-			String nextVersion = StringUtils.join(numbers.toArray(new String[0]), ".");
-			newVersion = nextVersion + "-SNAPSHOT";
-			getLog().info("SNAPSHOT found.  BEFORE " + version + "  --> AFTER: " + newVersion);
+			updateNewVersion();
 		}
 
 		if (StringUtils.isEmpty(newVersion)) {
-			if (settings.isInteractiveMode()) {
-				try {
-					newVersion = prompter.prompt("Enter the new version to set",
-							getProject().getOriginalModel().getVersion());
-				} catch (PrompterException e) {
-					throw new MojoExecutionException(e.getMessage(), e);
-				}
-			} else {
-				throw new MojoExecutionException("You must specify the new version, either by using the newVersion "
-						+ "property (that is -DnewVersion=... on the command line) or run in interactive mode");
-			}
+			setNewVersion();
 		}
 		if (StringUtils.isEmpty(newVersion)) {
 			throw new MojoExecutionException("You must specify the new version, either by using the newVersion "
 					+ "property (that is -DnewVersion=... on the command line) or run in interactive mode");
 		}
 
+		processUpdateChanges();
+	}
+	
+	private void setNewVersion() throws MojoExecutionException {
+		if (settings.isInteractiveMode()) {
+			try {
+				newVersion = prompter.prompt("Enter the new version to set",
+						getProject().getOriginalModel().getVersion());
+			} catch (PrompterException e) {
+				throw new MojoExecutionException(e.getMessage(), e);
+			}
+		} else {
+			throw new MojoExecutionException("You must specify the new version, either by using the newVersion "
+					+ "property (that is -DnewVersion=... on the command line) or run in interactive mode");
+		}
+		
+	}
+	
+	private void setCurrentSnapshot() {
+		String version = getVersion();
+		if (version.endsWith(SNAPSHOT)) {
+			String release = version.substring(0, version.indexOf(SNAPSHOT));
+			newVersion = release;
+			getLog().info("SNAPSHOT found.  BEFORE " + version + "  --> AFTER: " + newVersion);
+		}
+	}
+	
+	private void updateNewVersion(){
+		String version = getVersion();
+		String versionWithoutSnapshot = version;
+		if (version.endsWith(SNAPSHOT)) {
+			versionWithoutSnapshot = version.substring(0, version.indexOf(SNAPSHOT));
+		}
+		LinkedList<String> numbers = new LinkedList<String>();
+		if (versionWithoutSnapshot.contains(".")) {
+			// Chop the version into numbers by splitting on the dot (.)
+			Collections.addAll(numbers, versionWithoutSnapshot.split("\\."));
+		} else {
+			// The version contains no dots, assume that it is only 1 number
+			numbers.add(versionWithoutSnapshot);
+		}
+
+		int lastNumber = Integer.parseInt(numbers.removeLast());
+		numbers.addLast(String.valueOf(lastNumber + 1));
+		String nextVersion = StringUtils.join(numbers.toArray(new String[0]), ".");
+		newVersion = nextVersion + "-SNAPSHOT";
+		getLog().info("SNAPSHOT found.  BEFORE " + version + "  --> AFTER: " + newVersion);
+	}
+	
+	/**
+	 * Auxiliar method to support execution when mojo is executed.
+	 *
+	 * @throws org.apache.maven.plugin.MojoExecutionException when things go wrong.
+	 * @throws MojoFailureException 
+	 */
+	private void processUpdateChanges() throws MojoExecutionException, MojoFailureException {
 		try {
 			final MavenProject project = PomHelper.getLocalRoot(projectBuilder, getProject(), localRepository, null,
 					getLog());
@@ -277,20 +300,9 @@ public class SetMojo extends AbstractVersionsUpdaterMojo {
 					.compile(RegexUtils.convertWildcardsToRegex(fixNullOrEmpty(artifactId, "*"), true));
 			Pattern oldVersionIdRegex = Pattern
 					.compile(RegexUtils.convertWildcardsToRegex(fixNullOrEmpty(oldVersion, "*"), true));
-			boolean found = false;
-			for (Model m : reactor.values()) {
-				final String mGroupId = PomHelper.getGroupId(m);
-				final String mArtifactId = PomHelper.getArtifactId(m);
-				final String mVersion = PomHelper.getVersion(m);
-				if (((groupIdRegex.matcher(mGroupId).matches() && artifactIdRegex.matcher(mArtifactId).matches()) //
-						|| (processAllModules)) //
-						&& oldVersionIdRegex.matcher(mVersion).matches() && !newVersion.equals(mVersion)) {
-					found = true;
-					// if the change is not one we have swept up already
-					applyChange(project, reactor, files, mGroupId, m.getArtifactId(),
-							StringUtils.isBlank(oldVersion) || "*".equals(oldVersion) ? "" : m.getVersion());
-				}
-			}
+			
+			boolean found = searchVersion(reactor, artifactIdRegex, groupIdRegex, oldVersionIdRegex, files);
+					
 			if (!found && RegexUtils.getWildcardScore(groupId) == 0 && RegexUtils.getWildcardScore(artifactId) == 0
 					&& RegexUtils.getWildcardScore(oldVersion) == 0) {
 				applyChange(project, reactor, files, groupId, artifactId, oldVersion);
@@ -304,6 +316,26 @@ public class SetMojo extends AbstractVersionsUpdaterMojo {
 		} catch (IOException e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
+	}
+	
+	private boolean searchVersion(SortedMap<String, Model> reactor, Pattern artifactIdRegex, Pattern groupIdRegex,
+			Pattern oldVersionIdRegex, Set<File> files){
+		
+		boolean found = false;
+		for (Model m : reactor.values()) {
+			final String mGroupId = PomHelper.getGroupId(m);
+			final String mArtifactId = PomHelper.getArtifactId(m);
+			final String mVersion = PomHelper.getVersion(m);
+			if (((groupIdRegex.matcher(mGroupId).matches() && artifactIdRegex.matcher(mArtifactId).matches()) //
+					|| (processAllModules)) //
+					&& oldVersionIdRegex.matcher(mVersion).matches() && !newVersion.equals(mVersion)) {
+				found = true;
+				// if the change is not one we have swept up already
+				applyChange(project, reactor, files, mGroupId, m.getArtifactId(),
+						StringUtils.isBlank(oldVersion) || "*".equals(oldVersion) ? "" : m.getVersion());
+			}
+		}
+		return found;
 	}
 
 	private static String fixNullOrEmpty(String value, String defaultValue) {
@@ -322,7 +354,12 @@ public class SetMojo extends AbstractVersionsUpdaterMojo {
 		current.getValue().setVersion(newVersion);
 
 		addFile(files, project, current.getKey());
-
+		
+		processRootModule(reactor, files);
+			
+	}
+	
+	private void processRootModule(SortedMap<String, Model> reactor, Set<File> files) {
 		for (Map.Entry<String, Model> sourceEntry : reactor.entrySet()) {
 			final String sourcePath = sourceEntry.getKey();
 			final Model sourceModel = sourceEntry.getValue();
@@ -351,44 +388,49 @@ public class SetMojo extends AbstractVersionsUpdaterMojo {
 			getLog().debug("Looking for modules which use "
 					+ ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId) + " as their parent");
 
-			for (Map.Entry<String, Model> stringModelEntry : processAllModules ? reactor.entrySet() : //
-					PomHelper.getChildModels(reactor, sourceGroupId, sourceArtifactId).entrySet()) {
-				final Model targetModel = stringModelEntry.getValue();
-				final Parent parent = targetModel.getParent();
-				getLog().debug("Module: " + stringModelEntry.getKey());
-				if (parent != null && sourceVersion.equals(parent.getVersion())) {
-					getLog().debug("    parent already is "
-							+ ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId) + ":" + sourceVersion);
-				} else {
-					getLog().debug("    parent is " + ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId)
-							+ ":" + (parent == null ? "" : parent.getVersion()));
-					getLog().debug("    will become " + ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId)
-							+ ":" + sourceVersion);
-				}
-				final boolean targetExplicit = PomHelper.isExplicitVersion(targetModel);
-				if ((updateMatchingVersions || !targetExplicit) //
-						&& (parent != null
-								&& StringUtils.equals(parent.getVersion(), PomHelper.getVersion(targetModel)))) {
-					getLog().debug(
-							"    module is "
-									+ ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
-											PomHelper.getArtifactId(targetModel))
-									+ ":" + PomHelper.getVersion(targetModel));
-					getLog().debug("    will become " + ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
-							PomHelper.getArtifactId(targetModel)) + ":" + sourceVersion);
-					addChange(PomHelper.getGroupId(targetModel), PomHelper.getArtifactId(targetModel),
-							PomHelper.getVersion(targetModel), sourceVersion);
-					targetModel.setVersion(sourceVersion);
-				} else {
-					getLog().debug(
-							"    module is "
-									+ ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
-											PomHelper.getArtifactId(targetModel))
-									+ ":" + PomHelper.getVersion(targetModel));
-				}
+			for (Map.Entry<String, Model> stringModelEntry : processAllModules ? reactor.entrySet() : PomHelper.getChildModels(reactor, sourceGroupId, sourceArtifactId).entrySet()) {
+				processModule(stringModelEntry, sourceVersion, sourceGroupId, sourceArtifactId);
 			}
 		}
 	}
+	
+	private void processModule(Map.Entry<String, Model> stringModelEntry, String sourceVersion,String sourceGroupId,
+			String sourceArtifactId) {
+		final Model targetModel = stringModelEntry.getValue();
+		final Parent parent = targetModel.getParent();
+		getLog().debug("Module: " + stringModelEntry.getKey());
+		if (parent != null && sourceVersion.equals(parent.getVersion())) {
+			getLog().debug("    parent already is "
+					+ ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId) + ":" + sourceVersion);
+		} else {
+			getLog().debug("    parent is " + ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId)
+					+ ":" + (parent == null ? "" : parent.getVersion()));
+			getLog().debug("    will become " + ArtifactUtils.versionlessKey(sourceGroupId, sourceArtifactId)
+					+ ":" + sourceVersion);
+		}
+		final boolean targetExplicit = PomHelper.isExplicitVersion(targetModel);
+		if ((updateMatchingVersions || !targetExplicit) //
+				&& (parent != null
+						&& StringUtils.equals(parent.getVersion(), PomHelper.getVersion(targetModel)))) {
+			getLog().debug(
+					"    module is "
+							+ ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
+									PomHelper.getArtifactId(targetModel))
+							+ ":" + PomHelper.getVersion(targetModel));
+			getLog().debug("    will become " + ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
+					PomHelper.getArtifactId(targetModel)) + ":" + sourceVersion);
+			addChange(PomHelper.getGroupId(targetModel), PomHelper.getArtifactId(targetModel),
+					PomHelper.getVersion(targetModel), sourceVersion);
+			targetModel.setVersion(sourceVersion);
+		} else {
+			getLog().debug(
+					"    module is "
+							+ ArtifactUtils.versionlessKey(PomHelper.getGroupId(targetModel),
+									PomHelper.getArtifactId(targetModel))
+							+ ":" + PomHelper.getVersion(targetModel));
+		}
+	}
+
 
 	private void addFile(Set<File> files, MavenProject project, String relativePath) {
 		final File moduleDir = new File(project.getBasedir(), relativePath);
