@@ -447,9 +447,15 @@ public class PomHelper {
 				}
 			}
 		}
-
-		stack = new Stack<>();
-		path = "";
+		
+		return checkReplacement(pom, groupId, artifactId, oldVersion, newVersion, implicitProperties);
+	}
+		
+	private static boolean checkReplacement(final ModifiedPomXMLEventReader pom, final String groupId,
+			final String artifactId, final String oldVersion, final String newVersion, Map<String, String> implicitProperties) throws XMLStreamException{
+		
+		Stack<String> stack = new Stack<>();
+		String path = "";
 		boolean inMatchScope = false;
 		boolean madeReplacement = false;
 		boolean haveGroupId = false;
